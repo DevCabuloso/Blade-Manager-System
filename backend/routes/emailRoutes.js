@@ -24,7 +24,8 @@ router.get('/verify-email', async (req, res) => {
       .eq('id', user.id);
 
     // Redireciona para a página de login (frontend)
-    res.redirect('http://localhost:5173/login');
+    const frontendBase = process.env.APP_BASE_URL || 'http://localhost:5173';
+    res.redirect(`${frontendBase}/login`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Erro interno');

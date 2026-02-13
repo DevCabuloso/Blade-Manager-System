@@ -1,0 +1,38 @@
+# Render.yaml - Configuração para Deploy Automático do Backend no Render
+
+# Arquivo render.yaml na raiz do projeto
+# Render usa isso para configurar build/deploy automaticamente
+
+services:
+  - type: web
+    name: blade-manager-backend
+    env: node
+    plan: free
+    
+    buildCommand: "cd backend && npm install"
+    startCommand: "node backend/server.js"
+    
+    # Auto-deploy quando fazer push no main
+    branches:
+      - main
+    
+    # Variáveis de ambiente (configure no painel do Render também)
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        scope: secret  # Marque como secret para ocultar no painel
+      - key: SUPABASE_URL
+        scope: secret
+      - key: SUPABASE_KEY
+        scope: secret
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_USER
+        scope: secret
+      - key: EMAIL_PASS
+        scope: secret
+      - key: APP_BASE_URL  # URL do frontend Vercel
+        value: https://seu-frontend.vercel.app

@@ -125,6 +125,24 @@ app.use((err, req, res, next) => {
 });
 
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+// Start server with fallback if port is already in use
+const HOST = '0.0.0.0';
+const MAX_PORT_ATTEMPTS = 10;
+
+const startServer = (startPort, attemptsLeft) => {
+  const server = app.listen(startPort, HOST, () => {
+    console.log(`Servidor rodando em http://localhost:${startPort}`);
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.warn(`Porta ${startPort} em uso, tentando porta ${startPort + 1}...`);
+      setTimeout(() => startServer(startPort + 1, attemptsLeft - 1), 200);
+    } else {
+      console.error('Erro ao iniciar o servidor:', err);
+      process.exit(1);
+    }
+  });
+};
+
+startServer(Number(PORT) || 8000, MAX_PORT_ATTEMPTS);
