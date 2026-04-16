@@ -28,6 +28,20 @@ const normalizeOrigin = (origin) => {
   return origin.replace(/\/$/, '').trim().replace(/^['\"]|['\"]$/g, '');
 };
 
+const originToHostname = (origin) => {
+  const normalized = normalizeOrigin(origin);
+  if (!normalized) return null;
+  try {
+    return new URL(normalized).hostname;
+  } catch {
+    try {
+      return new URL(`https://${normalized}`).hostname;
+    } catch {
+      return null;
+    }
+  }
+};
+
 const buildAllowedOrigins = () => {
   const envOrigins = (process.env.ORIGENS_PERMITIDAS || '')
     .split(',')
@@ -61,6 +75,7 @@ const buildAllowedOrigins = () => {
 };
 
 const allowedOrigins = buildAllowedOrigins();
+const allowedHostnames = [...new Set(allowedOrigins.map(originToHostname).filter(Boolean))];
 
 
 app.use(cors({
@@ -68,7 +83,10 @@ app.use(cors({
     // Allow non-browser clients without Origin header (health checks, curl, etc.).
     if (!origin) return callback(null, true);
     const normalizedOrigin = normalizeOrigin(origin);
-    if (allowedOrigins.includes(normalizedOrigin)) {
+    const originHostname = originToHostname(origin);
+    const isAllowedByOrigin = allowedOrigins.includes(normalizedOrigin);
+    const isAllowedByHostname = originHostname && allowedHostnames.includes(originHostname);
+    if (isAllowedByOrigin || isAllowedByHostname) {
       return callback(null, true);
     }
     return callback(new Error(`Origem não permitida por CORS: ${origin}`));
