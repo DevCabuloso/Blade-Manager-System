@@ -10,7 +10,7 @@ RUN npm install --ignore-scripts
 
 # Copia o codigo do frontend
 COPY frontend ./frontend
-COPY vite.config.js tailwind.config.js postcss.config.cjs ./
+COPY index.html vite.config.js tailwind.config.js postcss.config.cjs ./
 
 # Build do frontend
 RUN npm run build
