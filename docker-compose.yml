@@ -1,0 +1,12 @@
+# docker-compose.yml (volumes e command corrigidos)
+services:
+  blademanager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/Uploads:/usr/src/blademanager/Uploads
+    environment:
+      - NODE_ENV=production
