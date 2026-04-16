@@ -23,9 +23,56 @@ const isDev = process.env.NODE_ENV !== 'production';
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+const normalizeOrigin = (origin) => {
+  if (!origin) return null;
+  return origin.replace(/\/$/, '').trim().replace(/^['\"]|['\"]$/g, '');
+};
+
+const buildAllowedOrigins = () => {
+  const envOrigins = (process.env.ORIGENS_PERMITIDAS || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+  const baseOrigins = [
+    normalizeOrigin(FRONTEND_URL),
+    ...envOrigins,
+    'http://localhost:5173',
+    'http://localhost:8000'
+  ];
+
+  const expanded = baseOrigins.flatMap((origin) => {
+    if (!origin || !origin.startsWith('http')) return [origin];
+    try {
+      const parsed = new URL(origin);
+      const variants = [origin];
+      if (parsed.hostname.startsWith('www.')) {
+        variants.push(origin.replace('://www.', '://'));
+      } else {
+        variants.push(origin.replace('://', '://www.'));
+      }
+      return variants;
+    } catch {
+      return [origin];
+    }
+  });
+
+  return [...new Set(expanded.map(normalizeOrigin).filter(Boolean))];
+};
+
+const allowedOrigins = buildAllowedOrigins();
+
 
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:8000'],
+  origin: (origin, callback) => {
+    // Allow non-browser clients without Origin header (health checks, curl, etc.).
+    if (!origin) return callback(null, true);
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origem não permitida por CORS: ${origin}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
