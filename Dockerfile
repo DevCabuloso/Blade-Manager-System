@@ -4,7 +4,9 @@ WORKDIR /app
 
 # Copia package.json da raiz
 COPY package*.json ./
-RUN npm install
+
+# Instala dependências SEM executar postinstall (que tenta acessar /backend)
+RUN npm install --ignore-scripts
 
 # Copia o codigo do frontend
 COPY frontend ./frontend
