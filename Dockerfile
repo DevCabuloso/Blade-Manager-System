@@ -1,10 +1,16 @@
 # --- Etapa 1: Build do frontend ---
 FROM node:20 AS frontend-build
-WORKDIR /app/frontend
+WORKDIR /app
 
-COPY frontend/package*.json ./
+# Copia package.json da raiz
+COPY package*.json ./
 RUN npm install
-COPY frontend ./
+
+# Copia o codigo do frontend
+COPY frontend ./frontend
+COPY vite.config.js tailwind.config.js postcss.config.cjs ./
+
+# Build do frontend
 RUN npm run build
 
 # --- Etapa 2: Backend + Frontend compilado ---
