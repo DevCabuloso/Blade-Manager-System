@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { getUserById } from '../utils/userAccess.js';
+import { getUserById, isUserInactive, normalizeUserId } from '../utils/userAccess.js';
 
 const getBearerToken = (req) => {
   const authHeader = req.headers['authorization'];
@@ -25,16 +25,13 @@ export const authenticate = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, getJwtSecret());
-    const userId = Number(decoded?.id);
+    const userId = normalizeUserId(decoded?.id);
 
-    if (!Number.isInteger(userId)) {
+    if (userId === null) {
       return res.status(401).json({ message: 'Token invalido.' });
     }
 
-    const { data: currentUser, error } = await getUserById(
-      userId,
-      'id, nome_usuario, email, telefone, tipo_usuario, ativo'
-    );
+    const { data: currentUser, error } = await getUserById(userId);
 
     if (error) {
       console.error('Erro ao consultar usuario autenticado:', error);
@@ -45,12 +42,12 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: 'Sessao invalida.' });
     }
 
-    if (currentUser.ativo === 0) {
+    if (isUserInactive(currentUser.ativo)) {
       return res.status(401).json({ message: 'Sessao encerrada para esta conta.' });
     }
 
     req.user = {
-      id: currentUser.id,
+      id: normalizeUserId(currentUser.id),
       nome_usuario: currentUser.nome_usuario,
       email: currentUser.email,
       telefone: currentUser.telefone,
@@ -76,16 +73,13 @@ export const authenticateTokenRelaxed = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, getJwtSecret());
-    const userId = Number(decoded?.id);
+    const userId = normalizeUserId(decoded?.id);
 
-    if (!Number.isInteger(userId)) {
+    if (userId === null) {
       return res.status(401).json({ message: 'Token invalido.' });
     }
 
-    const { data: currentUser, error } = await getUserById(
-      userId,
-      'id, nome_usuario, email, telefone, tipo_usuario, ativo'
-    );
+    const { data: currentUser, error } = await getUserById(userId);
 
     if (error) {
       console.error('Erro ao consultar usuario autenticado:', error);
@@ -96,12 +90,12 @@ export const authenticateTokenRelaxed = async (req, res, next) => {
       return res.status(401).json({ message: 'Sessao invalida.' });
     }
 
-    if (currentUser.ativo === 0) {
+    if (isUserInactive(currentUser.ativo)) {
       return res.status(401).json({ message: 'Sessao encerrada para esta conta.' });
     }
 
     req.user = {
-      id: currentUser.id,
+      id: normalizeUserId(currentUser.id),
       nome_usuario: currentUser.nome_usuario,
       email: currentUser.email,
       telefone: currentUser.telefone,

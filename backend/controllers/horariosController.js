@@ -1,5 +1,5 @@
 import supabase from '../config/db.js';
-import { getProfessionalAvailability } from '../utils/userAccess.js';
+import { getProfessionalAvailability, normalizeUserId } from '../utils/userAccess.js';
 import { validateHorarioPayload } from '../utils/validation.js';
 
 export const criarHorario = async (req, res) => {
@@ -54,7 +54,13 @@ export const listarHorarios = async (req, res) => {
 };
 
 export const listarMeusHorarios = async (req, res) => {
-  req.params.usuarios_id = req.user?.id;
+  const authenticatedUserId = normalizeUserId(req.user?.id);
+
+  if (authenticatedUserId === null) {
+    return res.status(401).json({ message: 'Usuario nao autenticado.' });
+  }
+
+  req.params.usuarios_id = authenticatedUserId;
   return listarHorarios(req, res);
 };
 

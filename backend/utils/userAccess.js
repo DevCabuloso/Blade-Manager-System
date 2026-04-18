@@ -1,9 +1,16 @@
 import supabase from '../config/db.js';
 import { normalizeWeekDay } from './validation.js';
 
-export const getUserById = async (userId, columns = 'id, nome_usuario, email, telefone, tipo_usuario, ativo') => {
-  const normalizedId = Number(userId);
-  if (!Number.isInteger(normalizedId)) {
+export const normalizeUserId = (value) => {
+  const normalizedId = Number(value);
+  return Number.isInteger(normalizedId) ? normalizedId : null;
+};
+
+export const isUserInactive = (value) => value === 0 || value === '0' || value === false;
+
+export const getUserById = async (userId, columns = '*') => {
+  const normalizedId = normalizeUserId(userId);
+  if (normalizedId === null) {
     return { data: null, error: null };
   }
 
@@ -20,9 +27,13 @@ export const getUserById = async (userId, columns = 'id, nome_usuario, email, te
 };
 
 export const getProfessionalAvailability = async (professionalId) => {
+  const normalizedProfessionalId = normalizeUserId(professionalId);
+  if (normalizedProfessionalId === null) {
+    return { professional: null, horarios: [], error: null };
+  }
+
   const { data: professional, error: professionalError } = await getUserById(
-    professionalId,
-    'id, nome_usuario, telefone, tipo_usuario, ativo'
+    normalizedProfessionalId
   );
 
   if (professionalError) {
@@ -33,14 +44,14 @@ export const getProfessionalAvailability = async (professionalId) => {
     return { professional: null, horarios: [], error: null };
   }
 
-  if (professional.ativo === 0) {
+  if (isUserInactive(professional.ativo)) {
     return { professional, horarios: [], error: null };
   }
 
   const { data: horarios, error: horariosError } = await supabase
     .from('horarios')
     .select('*')
-    .eq('usuarios_id', Number(professionalId))
+    .eq('usuarios_id', normalizedProfessionalId)
     .order('id', { ascending: true });
 
   return {

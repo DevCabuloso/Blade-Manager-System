@@ -1,8 +1,14 @@
+import { normalizeUserId } from '../utils/userAccess.js';
+
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!Number.isInteger(req.user?.id)) {
+    const authenticatedUserId = normalizeUserId(req.user?.id);
+
+    if (authenticatedUserId === null) {
       return res.status(401).json({ message: 'Usuario nao autenticado.' });
     }
+
+    req.user.id = authenticatedUserId;
 
     if (!allowedRoles.includes(req.user.tipo_usuario)) {
       return res.status(403).json({ message: 'Nao autorizado.' });
@@ -14,16 +20,20 @@ export const requireRole = (...allowedRoles) => {
 
 export const requireSelfOrAdmin = (paramName = 'id') => {
   return (req, res, next) => {
-    if (!Number.isInteger(req.user?.id)) {
+    const authenticatedUserId = normalizeUserId(req.user?.id);
+
+    if (authenticatedUserId === null) {
       return res.status(401).json({ message: 'Usuario nao autenticado.' });
     }
 
-    const targetId = Number(req.params[paramName]);
-    if (!Number.isInteger(targetId)) {
+    const targetId = normalizeUserId(req.params[paramName]);
+    if (targetId === null) {
       return res.status(400).json({ message: 'Identificador invalido.' });
     }
 
-    if (req.user.tipo_usuario === 'admin' || req.user.id === targetId) {
+    req.user.id = authenticatedUserId;
+
+    if (req.user.tipo_usuario === 'admin' || authenticatedUserId === targetId) {
       return next();
     }
 

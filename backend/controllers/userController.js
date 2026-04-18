@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { validateHorarioPayload } from '../utils/validation.js';
+import { isUserInactive, normalizeUserId } from '../utils/userAccess.js';
 
 dotenv.config();
 
@@ -12,6 +13,14 @@ const getJwtSecret = () => {
   }
 
   return process.env.JWT_SECRET;
+};
+
+const buildProfileLink = (req, targetId) => {
+  const baseUrl =
+    String(process.env.APP_BASE_URL || process.env.FRONTEND_URL || '').trim() ||
+    `${req.protocol}://${req.get('host')}`;
+
+  return `${baseUrl.replace(/\/$/, '')}/?profissionalId=${targetId}`;
 };
 
 // --- Registro de usuario ---
@@ -137,7 +146,7 @@ export const loginUser = async (req, res) => {
 
     const user = rows[0];
 
-    if (user.ativo === 0) {
+    if (isUserInactive(user.ativo)) {
       return res.status(403).json({ message: 'Conta suspensa, entre em contato com os administradores.' });
     }
 
@@ -155,7 +164,11 @@ export const loginUser = async (req, res) => {
     res.json({
       token,
       message: 'Login realizado com sucesso!',
-      user: { id: user.id, nome_usuario: user.nome_usuario, tipo_usuario: user.tipo_usuario }
+      user: {
+        id: normalizeUserId(user.id) ?? user.id,
+        nome_usuario: user.nome_usuario,
+        tipo_usuario: user.tipo_usuario
+      }
     });
   } catch (err) {
     console.error(err);
@@ -165,16 +178,16 @@ export const loginUser = async (req, res) => {
 
 // --- Buscar usuario ---
 export const getUser = async (req, res) => {
-  const targetId = Number(req.params.id);
+  const targetId = normalizeUserId(req.params.id);
 
   try {
-    if (!Number.isInteger(targetId)) {
+    if (targetId === null) {
       return res.status(400).json({ message: 'Identificador invalido.' });
     }
 
     const { data: rows, error } = await supabase
       .from('usuarios')
-      .select('id, nome_usuario, email, telefone, tipo_usuario, ativo')
+      .select('*')
       .eq('id', targetId)
       .limit(1);
 
@@ -187,7 +200,7 @@ export const getUser = async (req, res) => {
     const isPublicProfessional = user.tipo_usuario === 'barbeiro';
 
     if (isSelf || isAdmin) {
-      const profileLink = `${process.env.APP_BASE_URL}/?profissionalId=${targetId}`;
+      const profileLink = buildProfileLink(req, targetId);
       return res.json({ ...user, profileLink });
     }
 
@@ -209,17 +222,23 @@ export const getUser = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  req.params.id = req.user?.id;
+  const authenticatedUserId = normalizeUserId(req.user?.id);
+
+  if (authenticatedUserId === null) {
+    return res.status(401).json({ message: 'Usuario nao autenticado.' });
+  }
+
+  req.params.id = authenticatedUserId;
   return getUser(req, res);
 };
 
 // --- Atualizar usuario ---
 export const updateUser = async (req, res) => {
-  const targetId = Number(req.params.id);
+  const targetId = normalizeUserId(req.params.id);
   const { nome_usuario, telefone, email, nova_senha } = req.body;
 
   try {
-    if (!Number.isInteger(targetId)) {
+    if (targetId === null) {
       return res.status(400).json({ message: 'Identificador invalido.' });
     }
 
@@ -259,7 +278,7 @@ export const updateUser = async (req, res) => {
     if (errUpdate) return res.status(500).json({ message: 'Erro interno.' });
 
     const updatedUser = updatedUserData[0];
-    const profileLink = `${process.env.APP_BASE_URL}/?profissionalId=${targetId}`;
+    const profileLink = buildProfileLink(req, targetId);
     res.json({ message: 'Perfil atualizado!', ...updatedUser, profileLink });
   } catch (err) {
     console.error(err);

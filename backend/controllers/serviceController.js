@@ -1,6 +1,7 @@
 import supabase from '../config/db.js';
 import { getProfessionalAvailability } from '../utils/userAccess.js';
 import { validateServicePayload } from '../utils/validation.js';
+import { normalizeUserId } from '../utils/userAccess.js';
 
 export const getServices = async (req, res) => {
   const { profissionalId } = req.params;
@@ -44,7 +45,13 @@ export const getServices = async (req, res) => {
 };
 
 export const getOwnServices = async (req, res) => {
-  req.params.profissionalId = req.user?.id;
+  const authenticatedUserId = normalizeUserId(req.user?.id);
+
+  if (authenticatedUserId === null) {
+    return res.status(401).json({ message: 'Usuario nao autenticado.' });
+  }
+
+  req.params.profissionalId = authenticatedUserId;
   return getServices(req, res);
 };
 
