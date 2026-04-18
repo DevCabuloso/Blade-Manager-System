@@ -1,0 +1,17 @@
+# Dockerfile para Railway (só backend)
+FROM node:20
+
+WORKDIR /usr/src/app
+
+# Copia package.json e instala dependências
+COPY package*.json ./
+RUN npm install
+
+# Copia o código do backend
+COPY . .
+
+# Expõe a porta
+EXPOSE 8000
+
+# Comando para iniciar
+CMD ["node", "server.js"]
