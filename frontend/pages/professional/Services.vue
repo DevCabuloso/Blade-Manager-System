@@ -5,12 +5,12 @@
         <div class="page-panel services-panel">
           <div class="services-header">
             <div>
-              <h1 class="page-title">Gerenciamento de Servicos</h1>
-              <p class="page-subtitle services-subtitle">Gerencie, edite e organize os servicos oferecidos.</p>
+              <h1 class="page-title">Gerenciamento de Serviços</h1>
+              <p class="page-subtitle services-subtitle">Gerencie, edite e organize os serviços oferecidos.</p>
             </div>
 
             <AppButton block class="services-add-button" @click="openCreateModal">
-              + Novo Servico
+              + Novo Serviço
             </AppButton>
           </div>
         </div>
@@ -26,7 +26,7 @@
 
         <ServiceFormModal
           v-model="showCreateModal"
-          title="Novo Servico"
+          title="Novo Serviço"
           submit-text="Salvar"
           :initial-value="newService"
           @submit="handleCreate"
@@ -34,7 +34,7 @@
 
         <ServiceFormModal
           v-model="showEditModal"
-          title="Editar Servico"
+          title="Editar Serviço"
           submit-text="Atualizar"
           :initial-value="editService"
           @submit="handleUpdate"
@@ -42,8 +42,8 @@
 
         <AppConfirmDialog
           v-model="showDeleteModal"
-          title="Confirmar Exclusao"
-          message="Tem certeza que deseja excluir este servico?"
+          title="Confirmar Exclusão"
+          message="Tem certeza que deseja excluir este serviço?"
           confirm-text="Excluir"
           cancel-text="Cancelar"
           confirm-variant="danger"

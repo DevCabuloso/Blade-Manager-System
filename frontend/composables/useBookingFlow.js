@@ -76,7 +76,7 @@ export const useBookingFlow = ({ profissionalId, router }) => {
     try {
       workingHours.value = await fetchWorkingHoursByProfessional(profissionalId);
     } catch (error) {
-      console.error('Erro ao buscar horarios de funcionamento:', error);
+      console.error('Erro ao buscar horários de funcionamento:', error);
       workingHours.value = [];
     }
   };
@@ -144,7 +144,7 @@ export const useBookingFlow = ({ profissionalId, router }) => {
         return !occupiedIntervals.some((interval) => start < interval.end && end > interval.start);
       });
     } catch (error) {
-      console.error('Erro ao buscar horarios ocupados:', error);
+      console.error('Erro ao buscar horários ocupados:', error);
       availableTimes.value = baseTimes;
     }
   };

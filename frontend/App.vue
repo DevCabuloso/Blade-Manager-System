@@ -9,7 +9,7 @@
     <div v-if="isGlobalLoading" class="global-loader-overlay" role="status" aria-live="polite" aria-label="Carregando dados">
       <div class="global-loader-content">
         <div class="loader-spinner" aria-hidden="true"></div>
-        <p>Carregando informacoes...</p>
+        <p>Carregando informações...</p>
       </div>
     </div>
   </Transition>

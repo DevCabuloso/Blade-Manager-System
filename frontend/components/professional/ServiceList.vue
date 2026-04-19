@@ -9,9 +9,9 @@
         <thead>
           <tr>
             <th>Nome</th>
-            <th>{{ isMobile ? 'Preco' : 'Preço' }}</th>
+            <th>{{ isMobile ? 'Preço' : 'Preço' }}</th>
             <th>{{ isMobile ? 'Dur.' : 'Duração' }}</th>
-            <th class="text-right">{{ isMobile ? 'Acoes' : 'Ações' }}</th>
+            <th class="text-right">{{ isMobile ? 'Ações' : 'Ações' }}</th>
           </tr>
         </thead>
         <tbody>
