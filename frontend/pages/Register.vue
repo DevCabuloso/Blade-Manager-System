@@ -224,7 +224,7 @@ const horarios = ref([
   { dia_semana: 'quinta', hora_abertura: '08:00', hora_fechamento: '18:00' },
   { dia_semana: 'sexta', hora_abertura: '08:00', hora_fechamento: '18:00' },
   { dia_semana: 'sabado', hora_abertura: '09:00', hora_fechamento: '14:00' },
-  { dia_semana: 'domingo', hora_abertura: '00:00', hora_fechamento: '00:00' },
+  { dia_semana: 'domingo', hora_abertura: '09:00', hora_fechamento: '14:00' },
 ]);
 
 const formatarTelefone = (value) => {
