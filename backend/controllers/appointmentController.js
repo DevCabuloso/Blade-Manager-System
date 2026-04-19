@@ -1,4 +1,6 @@
 import supabase from '../config/db.js';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { getProfessionalAvailability } from '../utils/userAccess.js';
 import {
   getWeekDayFromDate,
@@ -66,6 +68,37 @@ const getScheduleWindow = (scheduleRow) => {
   };
 };
 
+const createGuestCustomer = async () => {
+  const guestIdentifier = crypto.randomUUID();
+  const generatedPassword = crypto.randomUUID();
+  const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .insert([
+      {
+        nome_usuario: 'Cliente visitante',
+        email: `guest-${guestIdentifier}@blade-manager.local`,
+        senha: hashedPassword,
+        telefone: null,
+        tipo_usuario: 'cliente',
+        ativo: 1,
+        email_verificado: true,
+      },
+    ])
+    .select('id')
+    .limit(1);
+
+  if (error) {
+    return { guestUserId: null, error };
+  }
+
+  return {
+    guestUserId: data?.[0]?.id || null,
+    error: null,
+  };
+};
+
 export const getAppointments = async (req, res) => {
   console.log('req.user:', req.user);
 
@@ -128,13 +161,18 @@ export const getAppointments = async (req, res) => {
 
 export const createAppointment = async (req, res) => {
   const { servico_id, data_hora, barbeiro_id } = req.body;
-  const cliente_id = req.user.id;
+  let cliente_id = req.user?.id || null;
+  let createdGuestUserId = null;
 
-  if (!cliente_id || !barbeiro_id || !servico_id || !data_hora) {
+  if (!barbeiro_id || !servico_id || !data_hora) {
     return res.status(400).json({ message: 'Campos obrigatorios faltando.' });
   }
 
   try {
+    if (req.user && req.user.tipo_usuario !== 'cliente') {
+      return res.status(403).json({ message: 'Apenas clientes podem criar agendamentos.' });
+    }
+
     const normalizedBarberId = parseStrictInteger(barbeiro_id);
     const normalizedServiceId = parseStrictInteger(servico_id);
     const requestedDateTime = parseDateTimeString(data_hora);
@@ -254,6 +292,22 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Horario ja ocupado!' });
     }
 
+    if (!cliente_id) {
+      const { guestUserId, error: guestError } = await createGuestCustomer();
+
+      if (guestError) {
+        console.error('Supabase error creating guest customer:', guestError);
+        return res.status(500).json({ message: 'Erro interno.' });
+      }
+
+      if (!guestUserId) {
+        return res.status(500).json({ message: 'Erro interno.' });
+      }
+
+      cliente_id = guestUserId;
+      createdGuestUserId = guestUserId;
+    }
+
     const { data, error } = await supabase
       .from('agendamentos')
       .insert([
@@ -270,13 +324,27 @@ export const createAppointment = async (req, res) => {
 
     if (error) {
       console.error('Supabase error creating appointment:', error);
+
+      if (createdGuestUserId) {
+        await supabase.from('usuarios').delete().eq('id', createdGuestUserId);
+      }
+
       return res.status(500).json({ message: 'Erro interno.' });
     }
 
     const appointmentId = data && data[0] ? data[0].id : null;
-    res.status(201).json({ message: 'Agendamento criado!', appointmentId });
+    res.status(201).json({
+      message: 'Agendamento criado!',
+      appointmentId,
+      isGuestBooking: Boolean(createdGuestUserId),
+    });
   } catch (err) {
     console.error(err);
+
+    if (createdGuestUserId) {
+      await supabase.from('usuarios').delete().eq('id', createdGuestUserId);
+    }
+
     res.status(500).json({ message: 'Erro interno.' });
   }
 };

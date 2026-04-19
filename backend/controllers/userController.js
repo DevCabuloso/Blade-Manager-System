@@ -20,7 +20,7 @@ const buildProfileLink = (req, targetId) => {
     String(process.env.APP_BASE_URL || process.env.FRONTEND_URL || '').trim() ||
     `${req.protocol}://${req.get('host')}`;
 
-  return `${baseUrl.replace(/\/$/, '')}/?profissionalId=${targetId}`;
+  return `${baseUrl.replace(/\/$/, '')}/agendar/${targetId}`;
 };
 
 // --- Registro de usuario ---

@@ -92,7 +92,7 @@ const navItems = [
   { to: '/profile', label: 'Perfil', subtitle: 'Dados profissionais', icon: 'mdi-account-outline' },
 ];
 
-const drawerOpen = computed({
+const  drawerOpen = computed({
   get: () => (isMobile.value ? showMobileSidebar.value : true),
   set: (value) => {
     if (isMobile.value) {

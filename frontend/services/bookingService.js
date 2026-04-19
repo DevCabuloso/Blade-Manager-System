@@ -16,17 +16,19 @@ export const fetchOccupiedAppointments = async (profissionalId, formattedDate) =
 };
 
 export const fetchProfessionalById = async (profissionalId, token) => {
-  const response = await axios.get(`/api/usuarios/${profissionalId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const config = token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : undefined;
+  const response = await axios.get(`/api/usuarios/${profissionalId}`, config);
 
   return response.data;
 };
 
 export const createAppointment = async (appointmentData, token) => {
-  const response = await axios.post('/api/agendamentos', appointmentData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const config = token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : undefined;
+  const response = await axios.post('/api/agendamentos', appointmentData, config);
 
   return response.data;
 };

@@ -21,9 +21,9 @@ export const applyAuthGuard = (router) => {
     const profissionalId = normalizeProfissionalId(to.query.profissionalId);
     const requiresAuth = routeRequiresAuth(to);
 
-    if (profissionalId && to.path === '/' && !token) {
+    if (profissionalId && to.path === '/') {
       setPendingProfissionalId(profissionalId);
-      return { path: '/login', query: { profissionalId } };
+      return { path: `/agendar/${profissionalId}` };
     }
 
     if (profissionalId) {

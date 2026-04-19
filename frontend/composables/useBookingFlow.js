@@ -18,7 +18,7 @@ import {
   fetchServicesByProfessional,
   fetchWorkingHoursByProfessional,
 } from '@/services/bookingService.js';
-import { getAuthToken, setRedirectAfterRegister } from '@/utils/authStorage.js';
+import { getAuthToken } from '@/utils/authStorage.js';
 
 export const useBookingFlow = ({ profissionalId, router }) => {
   const services = ref([]);
@@ -183,12 +183,6 @@ export const useBookingFlow = ({ profissionalId, router }) => {
     try {
       isSubmitting.value = true;
       const token = getAuthToken();
-
-      if (!token) {
-        setRedirectAfterRegister(profissionalId);
-        router.push('/register');
-        return;
-      }
 
       const userData = await fetchProfessionalById(profissionalId, token);
       const numero = userData.telefone?.replace(/\D/g, '');
