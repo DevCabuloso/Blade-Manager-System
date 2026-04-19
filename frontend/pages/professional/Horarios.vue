@@ -13,8 +13,8 @@
               </div>
             </div>
 
-            <AppButton block size="small" class="horarios-action-button" @click="openCreateModal">
-              Novo Horário
+            <AppButton :block="isMobile" size="small" class="horarios-action-button" @click="openCreateModal">
+              + Novo Horário
             </AppButton>
           </div>
         </div>
@@ -64,6 +64,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
 import LayoutProfissional from '@/components/LayoutProfissional.vue';
 import HorarioFormModal from '@/components/professional/HorarioFormModal.vue';
 import HorarioList from '@/components/professional/HorarioList.vue';
@@ -72,6 +73,8 @@ import AppConfirmDialog from '@/components/ui/AppConfirmDialog.vue';
 import { useHorarios } from '@/composables/useHorarios.js';
 
 const router = useRouter();
+const { smAndDown } = useDisplay();
+const isMobile = smAndDown;
 const { horariosSorted, loading, errorMessage, fetchHorarios, saveHorario, deleteHorario } = useHorarios({ router });
 
 const showModal = ref(false);
@@ -195,9 +198,9 @@ onMounted(() => {
 
   .horarios-action-button {
     width: auto;
-    min-width: 128px;
-    min-height: 34px;
-    padding-inline: 0.65rem;
+    min-width: 0;
+    min-height: 36px;
+    padding-inline: 0.75rem;
   }
 }
 </style>

@@ -9,7 +9,7 @@
               <p class="page-subtitle services-subtitle">Gerencie, edite e organize os serviços oferecidos.</p>
             </div>
 
-            <AppButton block size="small" class="services-add-button" @click="openCreateModal">
+            <AppButton :block="isMobile" size="small" class="services-add-button" @click="openCreateModal">
               + Novo Serviço
             </AppButton>
           </div>
@@ -58,6 +58,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
 import LayoutProfissional from '@/components/LayoutProfissional.vue';
 import ServiceFormModal from '@/components/professional/ServiceFormModal.vue';
 import ServiceList from '@/components/professional/ServiceList.vue';
@@ -67,6 +68,8 @@ import { useServices } from '@/composables/useServices.js';
 import { notifyError } from '@/utils/feedback.js';
 
 const router = useRouter();
+const { smAndDown } = useDisplay();
+const isMobile = smAndDown;
 const { services, isLoading, fetchServices, createService, updateService, deleteService } = useServices({ router });
 
 const showCreateModal = ref(false);
@@ -192,9 +195,9 @@ onMounted(async () => {
 
   .services-add-button {
     width: auto;
-    min-width: 128px;
-    min-height: 34px;
-    padding-inline: 0.65rem;
+    min-width: 0;
+    min-height: 36px;
+    padding-inline: 0.75rem;
   }
 }
 </style>
