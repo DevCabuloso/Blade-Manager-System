@@ -46,51 +46,66 @@
 
     <div v-else class="horario-list__cards">
       <article v-for="horario in horarios" :key="horario.id" class="horario-list__card">
-        <div class="horario-list__card-header">
+        <button
+          type="button"
+          class="horario-list__card-header horario-list__card-toggle"
+          :aria-expanded="expandedHorarioId === horario.id"
+          @click="toggleHorario(horario.id)"
+        >
           <h3 class="horario-list__card-title">{{ formatarDiaSemana(horario.dia_semana) }}</h3>
-        </div>
+          <v-icon
+            icon="mdi-chevron-down"
+            size="20"
+            class="horario-list__card-chevron"
+            :class="{ 'horario-list__card-chevron--open': expandedHorarioId === horario.id }"
+          />
+        </button>
 
-        <div class="horario-list__card-details">
-          <div class="horario-list__card-detail">
-            <span class="horario-list__card-label">Abertura</span>
-            <span class="horario-list__card-value">{{ formatarHora(horario.hora_abertura) }}</span>
+        <v-expand-transition>
+          <div v-if="expandedHorarioId === horario.id" class="horario-list__card-content">
+            <div class="horario-list__card-details">
+              <div class="horario-list__card-detail">
+                <span class="horario-list__card-label">Abertura</span>
+                <span class="horario-list__card-value">{{ formatarHora(horario.hora_abertura) }}</span>
+              </div>
+              <div class="horario-list__card-detail">
+                <span class="horario-list__card-label">Fechamento</span>
+                <span class="horario-list__card-value">{{ formatarHora(horario.hora_fechamento) }}</span>
+              </div>
+            </div>
+
+            <div class="horario-list__actions horario-list__actions--card">
+              <v-menu location="bottom end">
+                <template #activator="{ props: menuProps }">
+                  <v-btn
+                    v-bind="menuProps"
+                    append-icon="mdi-chevron-down"
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    class="horario-list__card-button"
+                  >
+                    Ações
+                  </v-btn>
+                </template>
+
+                <v-list class="horario-list__menu" bg-color="rgba(15, 23, 42, 0.98)">
+                  <v-list-item
+                    prepend-icon="mdi-pencil-outline"
+                    title="Editar"
+                    @click="$emit('edit', horario)"
+                  />
+                  <v-list-item
+                    prepend-icon="mdi-trash-can-outline"
+                    title="Excluir"
+                    class="horario-list__menu-item--danger"
+                    @click="$emit('delete', horario.id)"
+                  />
+                </v-list>
+              </v-menu>
+            </div>
           </div>
-          <div class="horario-list__card-detail">
-            <span class="horario-list__card-label">Fechamento</span>
-            <span class="horario-list__card-value">{{ formatarHora(horario.hora_fechamento) }}</span>
-          </div>
-        </div>
-
-        <div class="horario-list__actions horario-list__actions--card">
-          <v-menu location="bottom end">
-            <template #activator="{ props: menuProps }">
-              <v-btn
-                v-bind="menuProps"
-                append-icon="mdi-chevron-down"
-                size="small"
-                variant="tonal"
-                color="primary"
-                class="horario-list__card-button"
-              >
-                Ações
-              </v-btn>
-            </template>
-
-            <v-list class="horario-list__menu" bg-color="rgba(15, 23, 42, 0.98)">
-              <v-list-item
-                prepend-icon="mdi-pencil-outline"
-                title="Editar"
-                @click="$emit('edit', horario)"
-              />
-              <v-list-item
-                prepend-icon="mdi-trash-can-outline"
-                title="Excluir"
-                class="horario-list__menu-item--danger"
-                @click="$emit('delete', horario.id)"
-              />
-            </v-list>
-          </v-menu>
-        </div>
+        </v-expand-transition>
       </article>
     </div>
   </div>
@@ -103,11 +118,13 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 import AppEmptyState from '@/components/ui/AppEmptyState.vue';
 
 const { smAndDown } = useDisplay();
 const isMobile = smAndDown;
+const expandedHorarioId = ref(null);
 
 defineProps({
   horarios: {
@@ -121,6 +138,10 @@ defineProps({
 });
 
 defineEmits(['edit', 'delete']);
+
+const toggleHorario = (horarioId) => {
+  expandedHorarioId.value = expandedHorarioId.value === horarioId ? null : horarioId;
+};
 
 const formatarDiaSemana = (dia) => {
   const dias = {
@@ -222,6 +243,15 @@ const formatarHora = (hora) => {
   gap: 0.75rem;
 }
 
+.horario-list__card-toggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
 .horario-list__card-title {
   margin: 0;
   color: #f5f3ff;
@@ -230,8 +260,20 @@ const formatarHora = (hora) => {
   line-height: 1.25;
 }
 
-.horario-list__card-details {
+.horario-list__card-chevron {
+  color: #c4b5fd;
+  transition: transform 0.2s ease;
+}
+
+.horario-list__card-chevron--open {
+  transform: rotate(180deg);
+}
+
+.horario-list__card-content {
   margin-top: 0.9rem;
+}
+
+.horario-list__card-details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
@@ -297,11 +339,6 @@ const formatarHora = (hora) => {
 
 .horario-list__menu-item--danger :deep(.v-list-item-title),
 .horario-list__menu-item--danger :deep(.v-icon) {
-  color: #fca5a5 !important;
-}
-
-.horario-list__card-button[color='error'] {
-  background: rgba(127, 29, 29, 0.2) !important;
   color: #fca5a5 !important;
 }
 
