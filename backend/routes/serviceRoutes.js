@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 router.get('/me', authenticateTokenRelaxed, requireRole('barbeiro', 'admin'), getOwnServices);
-router.get('/:profissionalId', getServices);
+router.get('/:profissionalId(\\d+)', getServices);
 router.post('/', authenticateTokenRelaxed, requireRole('barbeiro', 'admin'), createService);
 router.put('/:id', authenticateTokenRelaxed, requireRole('barbeiro', 'admin'), updateService);
 router.delete('/:id', authenticateTokenRelaxed, requireRole('barbeiro', 'admin'), deleteService);

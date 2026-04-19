@@ -38,8 +38,8 @@ router.put('/:id/habilitar', authenticateToken, requireRole('admin'), enableUser
 router.get('/me', authenticateToken, getMe);
 router.put('/me', authenticateToken, updateMe);
 router.delete('/me', authenticateToken, deleteMe);
-router.get('/:id', authenticateTokenRelaxed, getUser);
-router.put('/:id', authenticateToken, requireSelfOrAdmin('id'), updateUser);
-router.delete('/:id', authenticateToken, requireSelfOrAdmin('id'), deleteUser);
+router.get('/:id(\\d+)', authenticateTokenRelaxed, getUser);
+router.put('/:id(\\d+)', authenticateToken, requireSelfOrAdmin('id'), updateUser);
+router.delete('/:id(\\d+)', authenticateToken, requireSelfOrAdmin('id'), deleteUser);
 
 export default router;
