@@ -60,8 +60,39 @@ export const listarMeusHorarios = async (req, res) => {
     return res.status(401).json({ message: 'Usuario nao autenticado.' });
   }
 
-  req.params.usuarios_id = authenticatedUserId;
-  return listarHorarios(req, res);
+  try {
+    const { data: professionalRows, error: professionalError } = await supabase
+      .from('usuarios')
+      .select('id, tipo_usuario, ativo')
+      .eq('id', authenticatedUserId)
+      .limit(1);
+
+    if (professionalError) {
+      console.error('Supabase error loading own professional profile:', professionalError);
+      return res.status(500).json({ message: 'Erro ao listar horarios.' });
+    }
+
+    const professional = professionalRows?.[0];
+    if (!professional || professional.tipo_usuario !== 'barbeiro' || professional.ativo === 0) {
+      return res.status(200).json([]);
+    }
+
+    const { data: horarios, error } = await supabase
+      .from('horarios')
+      .select('*')
+      .eq('usuarios_id', authenticatedUserId)
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Supabase error loading own horarios:', error);
+      return res.status(500).json({ message: 'Erro ao listar horarios.' });
+    }
+
+    return res.status(200).json(horarios || []);
+  } catch (error) {
+    console.error('Erro ao listar meus horarios:', error);
+    return res.status(500).json({ message: 'Erro ao listar horarios.' });
+  }
 };
 
 export const atualizarHorario = async (req, res) => {
