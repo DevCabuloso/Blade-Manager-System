@@ -1,17 +1,17 @@
 <template>
   <div v-if="loading" class="horario-list__state">
     <v-progress-circular indeterminate color="primary" size="32" width="3" />
-    <span>Carregando horários...</span>
+    <span>Carregando horarios...</span>
   </div>
   <div v-else-if="horarios.length" class="horario-list">
-    <div class="horario-list__table-wrap">
+    <div v-if="!isMobile" class="horario-list__table-wrap">
       <v-table class="horario-list__table" density="comfortable">
         <thead>
           <tr>
             <th>Dia</th>
-            <th>{{ isMobile ? 'Abre' : 'Abertura' }}</th>
-            <th>{{ isMobile ? 'Fecha' : 'Fechamento' }}</th>
-            <th class="text-right">{{ isMobile ? 'Acoes' : 'Ações' }}</th>
+            <th>Abertura</th>
+            <th>Fechamento</th>
+            <th class="text-right">Acoes</th>
           </tr>
         </thead>
         <tbody>
@@ -43,12 +43,54 @@
         </tbody>
       </v-table>
     </div>
+
+    <div v-else class="horario-list__cards">
+      <article v-for="horario in horarios" :key="horario.id" class="horario-list__card">
+        <div class="horario-list__card-header">
+          <h3 class="horario-list__card-title">{{ formatarDiaSemana(horario.dia_semana) }}</h3>
+        </div>
+
+        <div class="horario-list__card-details">
+          <div class="horario-list__card-detail">
+            <span class="horario-list__card-label">Abertura</span>
+            <span class="horario-list__card-value">{{ formatarHora(horario.hora_abertura) }}</span>
+          </div>
+          <div class="horario-list__card-detail">
+            <span class="horario-list__card-label">Fechamento</span>
+            <span class="horario-list__card-value">{{ formatarHora(horario.hora_fechamento) }}</span>
+          </div>
+        </div>
+
+        <div class="horario-list__actions horario-list__actions--card">
+          <v-btn
+            prepend-icon="mdi-pencil-outline"
+            size="small"
+            variant="tonal"
+            color="primary"
+            class="horario-list__card-button"
+            @click="$emit('edit', horario)"
+          >
+            Editar
+          </v-btn>
+          <v-btn
+            prepend-icon="mdi-trash-can-outline"
+            size="small"
+            variant="tonal"
+            color="error"
+            class="horario-list__card-button"
+            @click="$emit('delete', horario.id)"
+          >
+            Excluir
+          </v-btn>
+        </div>
+      </article>
+    </div>
   </div>
   <AppEmptyState
     v-else
-    icon="⏰"
-    title="Nenhum horário cadastrado"
-    message='Clique em "Novo Horário" para adicionar os seus dias de atendimento.'
+    icon="H"
+    title="Nenhum horario cadastrado"
+    message='Clique em "Novo Horario" para adicionar os seus dias de atendimento.'
   />
 </template>
 
@@ -75,11 +117,11 @@ defineEmits(['edit', 'delete']);
 const formatarDiaSemana = (dia) => {
   const dias = {
     segunda: 'Segunda-feira',
-    terca: 'Terça-feira',
+    terca: 'Terca-feira',
     quarta: 'Quarta-feira',
     quinta: 'Quinta-feira',
     sexta: 'Sexta-feira',
-    sabado: 'Sábado',
+    sabado: 'Sabado',
     domingo: 'Domingo',
   };
 
@@ -104,6 +146,10 @@ const formatarHora = (hora) => {
   color: #c4b5fd;
 }
 
+.horario-list__table-wrap {
+  width: 100%;
+}
+
 .horario-list__table {
   width: 100%;
   background: rgba(2, 6, 23, 0.76);
@@ -111,10 +157,6 @@ const formatarHora = (hora) => {
   border-radius: 1.25rem;
   overflow: hidden;
   table-layout: fixed;
-}
-
-.horario-list__table-wrap {
-  width: 100%;
 }
 
 .horario-list__table :deep(th) {
@@ -135,25 +177,6 @@ const formatarHora = (hora) => {
   background: rgba(148, 163, 184, 0.06);
 }
 
-.horario-list__actions {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: nowrap;
-}
-
-.horario-list__actions--table {
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.horario-list__icon-button {
-  color: #c084fc !important;
-}
-
-.horario-list__icon-button--danger {
-  color: #f472b6 !important;
-}
-
 .horario-list__table :deep(th:nth-child(1)),
 .horario-list__table :deep(td:nth-child(1)) {
   width: 36%;
@@ -171,26 +194,107 @@ const formatarHora = (hora) => {
   width: 30%;
 }
 
+.horario-list__cards {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.horario-list__card {
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.2);
+}
+
+.horario-list__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.horario-list__card-title {
+  margin: 0;
+  color: #f5f3ff;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.horario-list__card-details {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.horario-list__card-detail {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(196, 181, 253, 0.12);
+  border-radius: 0.85rem;
+}
+
+.horario-list__card-label {
+  color: #a78bfa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.horario-list__card-value {
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.horario-list__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+.horario-list__actions--table {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.horario-list__actions--card {
+  margin-top: 1rem;
+  gap: 0.6rem;
+}
+
+.horario-list__icon-button {
+  color: #c084fc !important;
+}
+
+.horario-list__icon-button--danger {
+  color: #f472b6 !important;
+}
+
+.horario-list__card-button {
+  flex: 1 1 0;
+}
+
 @media (max-width: 767px) {
-  .horario-list__table {
-    font-size: 0.82rem;
+  .horario-list__card {
+    padding: 0.9rem;
   }
 
-  .horario-list__table :deep(th),
-  .horario-list__table :deep(td) {
-    padding: 0.55rem 0.45rem;
+  .horario-list__card-details {
+    grid-template-columns: 1fr;
   }
 
-  .horario-list__table :deep(th) {
-    font-size: 0.68rem;
+  .horario-list__actions--card {
+    flex-direction: column;
   }
 
-  .horario-list__table :deep(td:nth-child(1)) {
-    word-break: break-word;
-  }
-
-  .horario-list__actions--table {
-    gap: 0.1rem;
+  .horario-list__card-button {
+    width: 100%;
   }
 }
 </style>
