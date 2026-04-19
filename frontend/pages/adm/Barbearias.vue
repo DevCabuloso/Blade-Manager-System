@@ -44,7 +44,7 @@
           <th>Nome</th>
           <th>E-mail</th>
           <th>Telefone</th>
-          <th class="text-right">Acoes</th>
+          <th class="text-right">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -70,7 +70,7 @@
     <div v-if="barbearias.length === 0" class="mt-4">
       <AppEmptyState
         title="Nenhuma barbearia encontrada"
-        message="Ajuste o filtro ou cadastre uma nova barbearia para comecar."
+        message="Ajuste o filtro ou cadastre uma nova barbearia para começar."
       />
     </div>
 
@@ -106,14 +106,14 @@
       <AppEmptyState
         v-if="barbearias.length === 0"
         title="Nenhuma barbearia encontrada"
-        message="Ajuste o filtro ou cadastre uma nova barbearia para comecar."
+        message="Ajuste o filtro ou cadastre uma nova barbearia para começar."
       />
     </div>
 
     <AppDialog
       v-model="showModal"
       :title="editando ? 'Editar Barbearia' : 'Cadastrar Barbearia'"
-      :subtitle="editando ? 'Atualize apenas os dados necessarios.' : 'Preencha os dados para criar uma nova barbearia.'"
+      :subtitle="editando ? 'Atualize apenas os dados necessários.' : 'Preencha os dados para criar uma nova barbearia.'"
       max-width="640"
     >
       <v-alert

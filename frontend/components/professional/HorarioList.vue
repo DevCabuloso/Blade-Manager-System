@@ -11,7 +11,7 @@
             <th>Dia</th>
             <th>Abertura</th>
             <th>Fechamento</th>
-            <th class="text-right">Acoes</th>
+            <th class="text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -62,26 +62,34 @@
         </div>
 
         <div class="horario-list__actions horario-list__actions--card">
-          <v-btn
-            prepend-icon="mdi-pencil-outline"
-            size="small"
-            variant="tonal"
-            color="primary"
-            class="horario-list__card-button"
-            @click="$emit('edit', horario)"
-          >
-            Editar
-          </v-btn>
-          <v-btn
-            prepend-icon="mdi-trash-can-outline"
-            size="small"
-            variant="tonal"
-            color="error"
-            class="horario-list__card-button"
-            @click="$emit('delete', horario.id)"
-          >
-            Excluir
-          </v-btn>
+          <v-menu location="bottom end">
+            <template #activator="{ props: menuProps }">
+              <v-btn
+                v-bind="menuProps"
+                append-icon="mdi-chevron-down"
+                size="small"
+                variant="tonal"
+                color="primary"
+                class="horario-list__card-button"
+              >
+                Ações
+              </v-btn>
+            </template>
+
+            <v-list class="horario-list__menu" bg-color="rgba(15, 23, 42, 0.98)">
+              <v-list-item
+                prepend-icon="mdi-pencil-outline"
+                title="Editar"
+                @click="$emit('edit', horario)"
+              />
+              <v-list-item
+                prepend-icon="mdi-trash-can-outline"
+                title="Excluir"
+                class="horario-list__menu-item--danger"
+                @click="$emit('delete', horario.id)"
+              />
+            </v-list>
+          </v-menu>
         </div>
       </article>
     </div>
@@ -273,7 +281,28 @@ const formatarHora = (hora) => {
 }
 
 .horario-list__icon-button--danger {
-  color: #f472b6 !important;
+  color: #ef4444 !important;
+}
+
+.horario-list__menu {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.horario-list__menu :deep(.v-list-item-title) {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.horario-list__menu-item--danger :deep(.v-list-item-title),
+.horario-list__menu-item--danger :deep(.v-icon) {
+  color: #fca5a5 !important;
+}
+
+.horario-list__card-button[color='error'] {
+  background: rgba(127, 29, 29, 0.2) !important;
+  color: #fca5a5 !important;
 }
 
 .horario-list__card-button {
@@ -290,7 +319,7 @@ const formatarHora = (hora) => {
   }
 
   .horario-list__actions--card {
-    flex-direction: column;
+    justify-content: stretch;
   }
 
   .horario-list__card-button {

@@ -21,7 +21,7 @@
             </div>
 
             <p class="service-card__meta">
-              Duracao media:
+              Duração média:
               <span class="service-card__meta-highlight">{{ service.duracao_minutos }} min</span>
             </p>
 

@@ -66,7 +66,7 @@
       color="rgba(15, 23, 42, 0.45)"
       class="mt-4 reports-empty-state"
     >
-      Digite um profissional e clique em "Buscar" para ver os relatorios.
+      Digite um profissional e clique em "Buscar" para ver os relatórios.
     </v-sheet>
 
     <div
@@ -74,7 +74,7 @@
       class="d-flex flex-column flex-sm-row align-sm-center justify-sm-space-between ga-3 mt-5"
     >
       <v-chip color="primary" variant="tonal" size="small">
-        Periodo atual: {{ periodLabel }}
+        Período atual: {{ periodLabel }}
       </v-chip>
 
       <AppButton color="success" variant="primary" @click="exportarPDF">
@@ -115,10 +115,10 @@ const periodOptions = [
 ];
 
 const statCards = [
-  { key: 'usuarios', label: 'Usuarios' },
+  { key: 'usuarios', label: 'Usuários' },
   { key: 'barbearias', label: 'Barbearias' },
   { key: 'agendamentos', label: 'Agendamentos' },
-  { key: 'servicos', label: 'Servicos' },
+  { key: 'servicos', label: 'Serviços' },
 ];
 
 const periodLabel = computed(() => {

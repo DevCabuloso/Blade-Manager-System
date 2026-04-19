@@ -65,7 +65,7 @@ const props = defineProps({
 const variantMap = {
   primary: { color: 'primary', variant: 'flat', tone: 'primary' },
   secondary: { color: 'primary', variant: 'flat', tone: 'secondary' },
-  danger: { color: 'primary', variant: 'flat', tone: 'secondary' },
+  danger: { color: 'error', variant: 'flat', tone: 'danger' },
   success: { color: 'primary', variant: 'flat', tone: 'primary' },
   text: { color: 'primary', variant: 'text', tone: 'text' },
   outlined: { color: 'primary', variant: 'outlined', tone: 'outlined' },
@@ -120,6 +120,13 @@ const resolvedTone = computed(() => variantMap[props.variant]?.tone || 'primary'
   color: #f5f3ff !important;
   border: 1px solid rgba(196, 181, 253, 0.18) !important;
   box-shadow: 0 12px 28px rgba(46, 16, 101, 0.2);
+}
+
+.app-button--danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  color: #fff1f2 !important;
+  border: 1px solid rgba(254, 202, 202, 0.22) !important;
+  box-shadow: 0 14px 30px rgba(185, 28, 28, 0.28);
 }
 
 .app-button--text {

@@ -20,19 +20,37 @@
                 class="agenda-month-nav"
                 @click="previousMonth"
               />
-              <AppButton v-else variant="secondary" size="small" @click="previousMonth">
+              <AppButton v-else variant="secondary" size="small" class="agenda-nav-button" @click="previousMonth">
                 &lt;
               </AppButton>
 
-              <AppField
-                v-model="selectedMonth"
-                type="month"
-                label="Selecionar Mes"
-                density="compact"
-                hide-details
-                class="agenda-month-field"
-                @update:model-value="fetchAppointments"
-              />
+              <div class="agenda-month-selects">
+                <AppField
+                  v-model="selectedMonthNumber"
+                  field-type="select"
+                  label="Mes"
+                  density="compact"
+                  hide-details
+                  :items="monthOptions"
+                  item-title="label"
+                  item-value="value"
+                  class="agenda-month-field agenda-month-field--month"
+                  @update:model-value="handleMonthSelection"
+                />
+
+                <AppField
+                  v-model="selectedYearNumber"
+                  field-type="select"
+                  label="Ano"
+                  density="compact"
+                  hide-details
+                  :items="yearOptions"
+                  item-title="label"
+                  item-value="value"
+                  class="agenda-month-field agenda-month-field--year"
+                  @update:model-value="handleMonthSelection"
+                />
+              </div>
 
               <v-btn
                 v-if="isMobile"
@@ -43,12 +61,17 @@
                 class="agenda-month-nav"
                 @click="nextMonth"
               />
-              <AppButton v-else variant="secondary" size="small" @click="nextMonth">
+              <AppButton v-else variant="secondary" size="small" class="agenda-nav-button" @click="nextMonth">
                 &gt;
               </AppButton>
             </div>
 
-            <AppButton class="agenda-current-button" @click="resetFilter">
+            <AppButton
+              v-if="!isCurrentMonthSelected"
+              size="small"
+              class="agenda-current-button"
+              @click="resetFilter"
+            >
               Mes Atual
             </AppButton>
           </div>
@@ -95,8 +118,8 @@
             <v-table theme="dark" class="agenda-table">
               <thead>
                 <tr>
-                  <th>Servico</th>
-                  <th>Horario</th>
+                  <th>Serviço</th>
+                  <th>Horário</th>
                   <th>Valor</th>
                   <th>Status</th>
                 </tr>
@@ -136,13 +159,41 @@ const router = useRouter();
 const { smAndDown } = useDisplay();
 const isMobile = smAndDown;
 const selectedMonth = ref(new Date().toISOString().slice(0, 7));
+const selectedMonthNumber = ref('');
+const selectedYearNumber = ref('');
 const selectedDay = ref(null);
 const appointments = ref([]);
 const appointmentsSectionRef = ref(null);
 
+const monthOptions = [
+  { label: 'Janeiro', value: '01' },
+  { label: 'Fevereiro', value: '02' },
+  { label: 'Marco', value: '03' },
+  { label: 'Abril', value: '04' },
+  { label: 'Maio', value: '05' },
+  { label: 'Junho', value: '06' },
+  { label: 'Julho', value: '07' },
+  { label: 'Agosto', value: '08' },
+  { label: 'Setembro', value: '09' },
+  { label: 'Outubro', value: '10' },
+  { label: 'Novembro', value: '11' },
+  { label: 'Dezembro', value: '12' },
+];
+
+const yearOptions = computed(() => {
+  const currentYear = new Date().getFullYear();
+
+  return Array.from({ length: 9 }, (_, index) => {
+    const year = String(currentYear - 4 + index);
+    return { label: year, value: year };
+  });
+});
+
 const weekLabels = computed(() => (isMobile.value
   ? ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
   : ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']));
+
+const isCurrentMonthSelected = computed(() => selectedMonth.value === new Date().toISOString().slice(0, 7));
 
 const appointmentsByDate = computed(() => appointments.value.reduce((accumulator, appointment) => {
   const date = appointment.time.split('T')[0];
@@ -258,6 +309,28 @@ const agendaDayClass = (day) => ({
   'agenda-day--appointment': day.hasAppointment,
 });
 
+const syncMonthSelectors = () => {
+  const [year, month] = selectedMonth.value.split('-');
+  selectedMonthNumber.value = month;
+  selectedYearNumber.value = year;
+};
+
+const handleMonthSelection = () => {
+  if (!selectedMonthNumber.value || !selectedYearNumber.value) {
+    return;
+  }
+
+  const normalized = `${selectedYearNumber.value}-${selectedMonthNumber.value}`;
+
+  if (normalized === selectedMonth.value) {
+    return;
+  }
+
+  selectedMonth.value = normalized;
+  selectedDay.value = null;
+  fetchAppointments();
+};
+
 const fetchAppointments = async () => {
   try {
     const token = sessionStorage.getItem('token');
@@ -302,6 +375,7 @@ const previousMonth = () => {
   const [year, month] = selectedMonth.value.split('-').map(Number);
   const newDate = new Date(year, month - 2, 1);
   selectedMonth.value = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}`;
+  syncMonthSelectors();
   fetchAppointments();
 };
 
@@ -309,16 +383,19 @@ const nextMonth = () => {
   const [year, month] = selectedMonth.value.split('-').map(Number);
   const newDate = new Date(year, month, 1);
   selectedMonth.value = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}`;
+  syncMonthSelectors();
   fetchAppointments();
 };
 
 const resetFilter = () => {
   selectedMonth.value = new Date().toISOString().slice(0, 7);
+  syncMonthSelectors();
   selectedDay.value = null;
   fetchAppointments();
 };
 
 onMounted(() => {
+  syncMonthSelectors();
   fetchAppointments();
 });
 </script>
@@ -341,9 +418,17 @@ onMounted(() => {
 
 .agenda-month-controls {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(250px, 360px) auto;
   gap: 0.75rem;
-  align-items: end;
+  align-items: stretch;
+  min-height: 3rem;
+}
+
+.agenda-month-selects {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 0.6rem;
+  min-width: 0;
 }
 
 .agenda-month-nav {
@@ -358,8 +443,24 @@ onMounted(() => {
   min-width: 0;
 }
 
+.agenda-month-field--month {
+  max-width: 210px;
+}
+
+.agenda-month-field--year {
+  max-width: 140px;
+}
+
 .agenda-month-field :deep(.v-field) {
+  height: 100%;
   min-height: 3rem;
+}
+
+.agenda-nav-button,
+.agenda-current-button {
+  height: 3rem !important;
+  min-height: 3rem !important;
+  align-self: stretch;
 }
 
 .agenda-month-field :deep(.v-field__input),
@@ -540,8 +641,14 @@ onMounted(() => {
     align-items: center;
   }
 
+  .agenda-month-selects {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
   .agenda-current-button {
-    min-height: 2.9rem;
+    height: 2.9rem !important;
+    min-height: 2.9rem !important;
   }
 
   .agenda-calendar-grid {
@@ -577,8 +684,14 @@ onMounted(() => {
 @media (min-width: 900px) {
   .agenda-filter-bar {
     flex-direction: row;
-    align-items: end;
+    align-items: stretch;
     justify-content: space-between;
+    min-height: 3rem;
+  }
+
+  .agenda-month-controls {
+    flex: 1 1 auto;
+    justify-content: start;
   }
 
   .agenda-current-button {

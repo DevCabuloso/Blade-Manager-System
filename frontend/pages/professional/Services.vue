@@ -9,7 +9,7 @@
               <p class="page-subtitle services-subtitle">Gerencie, edite e organize os serviços oferecidos.</p>
             </div>
 
-            <AppButton block class="services-add-button" @click="openCreateModal">
+            <AppButton block size="small" class="services-add-button" @click="openCreateModal">
               + Novo Serviço
             </AppButton>
           </div>
@@ -192,7 +192,9 @@ onMounted(async () => {
 
   .services-add-button {
     width: auto;
-    min-width: 180px;
+    min-width: 128px;
+    min-height: 34px;
+    padding-inline: 0.65rem;
   }
 }
 </style>

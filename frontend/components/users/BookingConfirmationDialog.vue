@@ -9,7 +9,7 @@
         <v-sheet rounded="xl" border color="rgba(15, 23, 42, 0.68)" class="booking-dialog__sidebar">
           <div class="booking-dialog__sidebar-header">
             <div>
-              <p class="booking-dialog__eyebrow">Servico selecionado</p>
+              <p class="booking-dialog__eyebrow">Serviço selecionado</p>
               <h3 class="booking-dialog__title">
                 {{ selectedService?.nome || 'Agendamento' }}
               </h3>
@@ -27,7 +27,7 @@
                 {{ formatCurrency(selectedService?.preco) }}
               </p>
               <p class="booking-dialog__meta">
-                Duracao:
+                Duração:
                 <span class="booking-dialog__meta-highlight">{{ selectedService?.duracao_minutos || 0 }} min</span>
               </p>
             </v-card-text>
@@ -45,7 +45,7 @@
       <v-col cols="12" lg="8">
         <v-sheet rounded="xl" border color="rgba(3, 7, 18, 0.72)" class="booking-dialog__content">
           <div class="booking-dialog__content-header">
-            <h2 class="booking-dialog__content-title">Escolha data e horario</h2>
+            <h2 class="booking-dialog__content-title">Escolha data e horário</h2>
 
             <AppButton variant="secondary" @click="emit('close')">
               Cancelar

@@ -13,7 +13,7 @@
               </div>
             </div>
 
-            <AppButton block class="horarios-action-button" @click="openCreateModal">
+            <AppButton block size="small" class="horarios-action-button" @click="openCreateModal">
               Novo Horário
             </AppButton>
           </div>
@@ -195,7 +195,9 @@ onMounted(() => {
 
   .horarios-action-button {
     width: auto;
-    min-width: 180px;
+    min-width: 128px;
+    min-height: 34px;
+    padding-inline: 0.65rem;
   }
 }
 </style>

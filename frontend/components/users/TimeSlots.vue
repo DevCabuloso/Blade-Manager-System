@@ -21,7 +21,7 @@
     </v-row>
 
     <v-alert v-else type="warning" variant="tonal" rounded="xl">
-      Nao ha horarios disponiveis para este dia.
+      Não há horários disponíveis para este dia.
     </v-alert>
   </div>
 </template>

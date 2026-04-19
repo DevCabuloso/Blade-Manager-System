@@ -42,7 +42,7 @@
                   </AppButton>
 
                   <AppButton type="submit">
-                    Salvar Alteracoes
+                    Salvar Alterações
                   </AppButton>
                 </div>
               </v-col>
@@ -61,8 +61,8 @@
 
         <AppConfirmDialog
           v-model="showDeleteModal"
-          title="Confirmar Exclusao"
-          message="Tem certeza que deseja deletar sua conta? Essa acao e irreversivel."
+          title="Confirmar Exclusão"
+          message="Tem certeza que deseja deletar sua conta? Essa ação é irreversível."
           confirm-text="Deletar Conta"
           cancel-text="Cancelar"
           confirm-variant="danger"

@@ -1,7 +1,7 @@
 <template>
   <div v-if="isLoading" class="service-list__state">
     <v-progress-circular indeterminate color="primary" size="32" width="3" />
-    <span>Carregando servicos...</span>
+    <span>Carregando serviços...</span>
   </div>
   <div v-else-if="services.length" class="service-list">
     <div v-if="!isMobile" class="service-list__table-wrap">
@@ -9,9 +9,9 @@
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Preco</th>
-            <th>Duracao</th>
-            <th class="text-right">Acoes</th>
+            <th>Preço</th>
+            <th>Duração</th>
+            <th class="text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -46,60 +46,81 @@
 
     <div v-else class="service-list__cards">
       <article v-for="service in services" :key="service.id" class="service-list__card">
-        <div class="service-list__card-header">
+        <button
+          type="button"
+          class="service-list__card-header service-list__card-toggle"
+          :aria-expanded="expandedServiceId === service.id"
+          @click="toggleService(service.id)"
+        >
           <h3 class="service-list__card-title">{{ service.nome }}</h3>
-        </div>
+          <v-icon
+            icon="mdi-chevron-down"
+            size="20"
+            class="service-list__card-chevron"
+            :class="{ 'service-list__card-chevron--open': expandedServiceId === service.id }"
+          />
+        </button>
 
-        <div class="service-list__card-details">
-          <div class="service-list__card-detail">
-            <span class="service-list__card-label">Preco</span>
-            <span class="service-list__card-value">{{ formatCurrency(service.preco) }}</span>
-          </div>
-          <div class="service-list__card-detail">
-            <span class="service-list__card-label">Duracao</span>
-            <span class="service-list__card-value">{{ service.duracao_minutos }} min</span>
-          </div>
-        </div>
+        <v-expand-transition>
+          <div v-if="expandedServiceId === service.id" class="service-list__card-content">
+            <div class="service-list__card-details">
+              <div class="service-list__card-detail">
+                <span class="service-list__card-label">Duração</span>
+                <span class="service-list__card-value">{{ service.duracao_minutos }} min</span>
+              </div>
+            </div>
 
-        <div class="service-list__actions service-list__actions--card">
-          <v-btn
-            prepend-icon="mdi-pencil-outline"
-            size="small"
-            variant="tonal"
-            color="primary"
-            class="service-list__card-button"
-            @click="$emit('edit', service)"
-          >
-            Editar
-          </v-btn>
-          <v-btn
-            prepend-icon="mdi-trash-can-outline"
-            size="small"
-            variant="tonal"
-            color="error"
-            class="service-list__card-button"
-            @click="$emit('delete', service.id)"
-          >
-            Excluir
-          </v-btn>
-        </div>
+            <div class="service-list__actions service-list__actions--card">
+              <v-menu location="bottom end">
+                <template #activator="{ props: menuProps }">
+                  <v-btn
+                    v-bind="menuProps"
+                    append-icon="mdi-chevron-down"
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    class="service-list__card-button"
+                  >
+                    Ações
+                  </v-btn>
+                </template>
+
+                <v-list class="service-list__menu" bg-color="rgba(15, 23, 42, 0.98)">
+                  <v-list-item
+                    prepend-icon="mdi-pencil-outline"
+                    title="Editar"
+                    @click="$emit('edit', service)"
+                  />
+                  <v-list-item
+                    prepend-icon="mdi-trash-can-outline"
+                    title="Excluir"
+                    class="service-list__menu-item--danger"
+                    @click="$emit('delete', service.id)"
+                  />
+                </v-list>
+              </v-menu>
+            </div>
+          </div>
+        </v-expand-transition>
       </article>
     </div>
   </div>
   <AppEmptyState
     v-else
     icon="C"
-    title="Nenhum servico encontrado"
-    message="Crie um novo servico para comecar a organizar seus atendimentos."
+    title="Nenhum serviço encontrado"
+    message="Crie um novo serviço para começar a organizar seus atendimentos."
   />
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 import AppEmptyState from '@/components/ui/AppEmptyState.vue';
 
 const { smAndDown } = useDisplay();
 const isMobile = smAndDown;
+const expandedServiceId = ref(null);
 
 defineProps({
   services: {
@@ -113,6 +134,10 @@ defineProps({
 });
 
 defineEmits(['edit', 'delete']);
+
+const toggleService = (serviceId) => {
+  expandedServiceId.value = expandedServiceId.value === serviceId ? null : serviceId;
+};
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0;
@@ -205,12 +230,34 @@ const formatCurrency = (value) => {
   gap: 0.75rem;
 }
 
+.service-list__card-toggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
 .service-list__card-title {
   margin: 0;
   color: #f5f3ff;
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.25;
+}
+
+.service-list__card-chevron {
+  color: #c4b5fd;
+  transition: transform 0.2s ease;
+}
+
+.service-list__card-chevron--open {
+  transform: rotate(180deg);
+}
+
+.service-list__card-content {
+  margin-top: 0.9rem;
 }
 
 .service-list__card-details {
@@ -264,7 +311,28 @@ const formatCurrency = (value) => {
 }
 
 .service-list__icon-button--danger {
-  color: #f472b6 !important;
+  color: #ef4444 !important;
+}
+
+.service-list__menu {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.service-list__menu :deep(.v-list-item-title) {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.service-list__menu-item--danger :deep(.v-list-item-title),
+.service-list__menu-item--danger :deep(.v-icon) {
+  color: #fca5a5 !important;
+}
+
+.service-list__card-button[color='error'] {
+  background: rgba(127, 29, 29, 0.2) !important;
+  color: #fca5a5 !important;
 }
 
 .service-list__card-button {
@@ -281,7 +349,7 @@ const formatCurrency = (value) => {
   }
 
   .service-list__actions--card {
-    flex-direction: column;
+    justify-content: stretch;
   }
 
   .service-list__card-button {
