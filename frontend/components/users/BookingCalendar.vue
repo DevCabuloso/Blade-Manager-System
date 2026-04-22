@@ -1,51 +1,37 @@
 <template>
   <div>
-    <v-sheet rounded="xl" border color="rgba(15, 23, 42, 0.65)" class="booking-calendar-toolbar">
+    <div class="booking-calendar-toolbar">
       <AppButton class="booking-calendar-toolbar__nav" variant="secondary" size="small" @click="$emit('prev-month')">
         &lt;
       </AppButton>
 
-      <h3 class="booking-calendar-title">
-        {{ monthLabel }}
-      </h3>
+      <h3 class="booking-calendar-title">{{ monthLabel }}</h3>
 
       <AppButton class="booking-calendar-toolbar__nav" variant="secondary" size="small" @click="$emit('next-month')">
         &gt;
       </AppButton>
-    </v-sheet>
+    </div>
 
-    <v-calendar
-      :model-value="currentViewDate"
-      type="month"
-      locale="pt-BR"
-      :weekday-format="formatWeekdayLabel"
-      color="primary"
-      :short-weekdays="isMobile"
-      class="booking-calendar"
-      @click:date="handleCalendarClick"
-    >
-      <template #day-label="day">
-        <button
-          type="button"
-          class="booking-calendar-day"
-          :class="dayClass(day.date, day.day)"
-          :disabled="isDisabledDate(day.date, day.day)"
-          @click.stop="selectDate(day.date, day.day)"
-        >
+    <div class="agenda-calendar-grid">
+      <div v-for="day in weekLabels" :key="day" class="agenda-weekday">
+        {{ day }}
+      </div>
+
+      <button
+        v-for="day in calendarDays"
+        :key="day.date"
+        class="agenda-day"
+        :class="bookingDayClass(day)"
+        :disabled="!day.isCurrentMonth || isPastDate(day.day)"
+        :title="dayTitle(day)"
+        :aria-label="dayTitle(day)"
+        @click="selectDate(day)"
+      >
+        <span class="agenda-day__number" :class="{ 'agenda-day__number--today': day.isToday }">
           {{ day.day }}
-        </button>
-      </template>
-
-      <template #day="day">
-        <button
-          type="button"
-          class="booking-calendar-day-body"
-          :class="{ 'booking-calendar-day-body--selected': isSelectedDate(day.day) && isCurrentViewDate(day.date) }"
-          :disabled="isDisabledDate(day.date, day.day)"
-          @click.stop="selectDate(day.date, day.day)"
-        />
-      </template>
-    </v-calendar>
+        </span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -93,50 +79,77 @@ const emit = defineEmits(['next-month', 'prev-month', 'select-date']);
 const { mdAndDown } = useDisplay();
 const isMobile = mdAndDown;
 
-const currentViewKey = computed(() => `${props.currentYear}-${String(props.currentMonth + 1).padStart(2, '0')}`);
-const currentViewDate = computed(() => `${currentViewKey.value}-01`);
-const todayKey = new Date().toISOString().slice(0, 10);
+const weekLabels = computed(() => (isMobile.value
+  ? (props.weekDaysShort.length ? props.weekDaysShort : ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'])
+  : ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']));
 
-const isCurrentViewDate = (date) => date.startsWith(currentViewKey.value);
+const calendarDays = computed(() => {
+  const year = props.currentYear;
+  const month = props.currentMonth + 1;
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  const today = new Date().toISOString().split('T')[0];
+  const days = [];
+  const leadingDays = firstDay.getDay();
 
-const isDisabledDate = (date, day) => !isCurrentViewDate(date) || props.isPastDate(day) || date < todayKey;
-
-const isSelectedDate = (day) => props.selectedDate === day;
-
-const dayClass = (date, day) => ({
-  'booking-calendar-day--disabled': isDisabledDate(date, day),
-  'booking-calendar-day--selected': isSelectedDate(day) && isCurrentViewDate(date),
-  'booking-calendar-day--outside': !isCurrentViewDate(date),
-  'booking-calendar-day--default': !isDisabledDate(date, day) && !isSelectedDate(day),
-});
-
-const selectDate = (date, day) => {
-  if (isDisabledDate(date, day)) return;
-  emit('select-date', day);
-};
-
-const handleCalendarClick = (_, day) => {
-  if (!day?.date) return;
-  selectDate(day.date, day.day);
-};
-
-const formatWeekdayLabel = (value) => {
-  const rawValue =
-    value instanceof Date
-      ? value
-      : value?.date || value?.isoDate || value?.value || value;
-
-  const date = rawValue instanceof Date ? rawValue : new Date(rawValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return String(value?.label || value?.weekday || '').replace('-feira', '').replace('.', '').trim();
+  for (let i = leadingDays - 1; i >= 0; i -= 1) {
+    const prevDate = new Date(year, month - 1, -i);
+    days.push({
+      date: prevDate.toISOString().split('T')[0],
+      day: prevDate.getDate(),
+      isCurrentMonth: false,
+      isToday: false,
+    });
   }
 
-  return date
-    .toLocaleDateString('pt-BR', { weekday: isMobile.value ? 'short' : 'long' })
-    .replace('-feira', '')
-    .replace('.', '')
-    .trim();
+  for (let i = 1; i <= lastDay.getDate(); i += 1) {
+    const date = new Date(year, month - 1, i).toISOString().split('T')[0];
+    days.push({
+      date,
+      day: i,
+      isCurrentMonth: true,
+      isToday: date === today,
+    });
+  }
+
+  const trailingDays = (7 - (days.length % 7)) % 7;
+  for (let i = 1; i <= trailingDays; i += 1) {
+    const nextDate = new Date(year, month, i);
+    days.push({
+      date: nextDate.toISOString().split('T')[0],
+      day: nextDate.getDate(),
+      isCurrentMonth: false,
+      isToday: false,
+    });
+  }
+
+  return days;
+});
+
+const bookingDayClass = (day) => ({
+  'agenda-day--current': day.isCurrentMonth,
+  'agenda-day--outside': !day.isCurrentMonth,
+  'agenda-day--selected': day.isCurrentMonth && props.selectedDate === day.day,
+});
+
+const dayTitle = (day) => {
+  const [year, month, date] = day.date.split('-');
+  const baseLabel = `${date}/${month}/${year}`;
+
+  if (!day.isCurrentMonth) {
+    return `${baseLabel} - fora do mes atual`;
+  }
+
+  if (props.isPastDate(day.day)) {
+    return `${baseLabel} - indisponivel`;
+  }
+
+  return `${baseLabel} - disponivel`;
+};
+
+const selectDate = (day) => {
+  if (!day.isCurrentMonth || props.isPastDate(day.day)) return;
+  emit('select-date', day.day);
 };
 </script>
 
@@ -148,6 +161,9 @@ const formatWeekdayLabel = (value) => {
   gap: 0.75rem;
   padding: 0.9rem 1rem;
   margin-bottom: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.65);
 }
 
 .booking-calendar-toolbar__nav {
@@ -162,105 +178,74 @@ const formatWeekdayLabel = (value) => {
   font-size: clamp(1rem, 2.2vw, 1.25rem);
   font-weight: 900;
   text-align: center;
-  line-height: 1.2;
 }
 
-.booking-calendar {
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 1.15rem;
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.72));
+.agenda-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.4rem;
 }
 
-.booking-calendar :deep(.v-calendar-weekly__head-weekday) {
-  padding: 0.55rem 0.2rem;
+.agenda-weekday {
+  padding: 0.75rem 0.2rem;
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-align: center;
   text-transform: uppercase;
 }
 
-.booking-calendar :deep(.v-calendar-weekly__day) {
-  min-height: 4.25rem;
-  border-color: rgba(148, 163, 184, 0.12);
-  background: rgba(15, 23, 42, 0.56);
-}
-
-.booking-calendar :deep(.v-calendar-weekly__day.v-outside) {
-  background: rgba(15, 23, 42, 0.26);
-}
-
-.booking-calendar :deep(.v-calendar-weekly__day-label) {
-  margin: 0;
-  padding: 0.35rem 0.35rem 0;
-}
-
-.booking-calendar-day {
-  width: 2.2rem;
-  height: 2.2rem;
-  display: inline-flex;
+.agenda-day {
+  position: relative;
+  min-height: 4rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.72);
-  font-size: 0.92rem;
-  font-weight: 700;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.booking-calendar-day-body {
-  width: 100%;
-  min-height: 1.8rem;
-  background: transparent;
-  border: 0;
-}
-
-.booking-calendar-day-body--selected {
-  background: linear-gradient(180deg, rgba(168, 85, 247, 0.08), rgba(168, 85, 247, 0));
-}
-
-.booking-calendar-day--disabled {
-  background: rgba(15, 23, 42, 0.48);
-  color: #475569;
-  cursor: not-allowed;
-}
-
-.booking-calendar-day--outside {
-  background: rgba(15, 23, 42, 0.32);
-  color: #475569;
   border-color: rgba(148, 163, 184, 0.08);
-}
-
-.booking-calendar-day--selected {
-  background: linear-gradient(135deg, #a855f7, #9333ea);
-  border-color: rgba(251, 146, 60, 0.6);
-  color: #fff7ed;
-  box-shadow: 0 18px 32px rgba(147, 51, 234, 0.24);
-}
-
-.booking-calendar-day--default {
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 0.95rem;
   color: #e2e8f0;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.booking-calendar-day--default:hover {
+.agenda-day:hover {
   background: rgba(168, 85, 247, 0.14);
-  border-color: rgba(168, 85, 247, 0.28);
-  color: #fff7ed;
+  border-color: rgba(168, 85, 247, 0.25);
   transform: translateY(-1px);
 }
 
-@media (min-width: 640px) {
-  .booking-calendar :deep(.v-calendar-weekly__day) {
-    min-height: 4.7rem;
-  }
+.agenda-day__number {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
 
-  .booking-calendar-day {
-    width: 2.35rem;
-    height: 2.35rem;
+.agenda-day__number--today {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.agenda-day--outside {
+  background: rgba(15, 23, 42, 0.38);
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.agenda-day--selected {
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  border-color: rgba(251, 146, 60, 0.6);
+  color: #fff7ed;
+  box-shadow: 0 14px 28px rgba(147, 51, 234, 0.22);
+}
+
+@media (max-width: 959px) {
+  .agenda-day {
+    min-height: 3.35rem;
   }
 }
 
@@ -280,18 +265,22 @@ const formatWeekdayLabel = (value) => {
     font-size: 0.96rem;
   }
 
-  .booking-calendar :deep(.v-calendar-weekly__head-weekday) {
-    font-size: 0.64rem;
+  .agenda-weekday {
+    padding-top: 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
   }
 
-  .booking-calendar :deep(.v-calendar-weekly__day) {
-    min-height: 3.5rem;
+  .agenda-day {
+    min-height: 2.95rem;
+    aspect-ratio: 1;
+    border-radius: 0.8rem;
   }
 
-  .booking-calendar-day {
-    width: 1.9rem;
-    height: 1.9rem;
-    font-size: 0.82rem;
+  .agenda-day__number {
+    width: 1.55rem;
+    height: 1.55rem;
+    font-size: 0.8rem;
   }
 }
 </style>

@@ -4,6 +4,7 @@
     :max-width="maxWidth"
     :persistent="persistent"
     :transition="transition"
+    :content-class="contentClass"
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
   >
@@ -47,6 +48,10 @@ const props = defineProps({
     type: [String, Number],
     default: 720,
   },
+  viewportWidth: {
+    type: String,
+    default: '92vw',
+  },
   persistent: {
     type: Boolean,
     default: false,
@@ -55,15 +60,21 @@ const props = defineProps({
     type: String,
     default: 'fade-transition',
   },
+  contentClass: {
+    type: String,
+    default: '',
+  },
 });
 
 defineEmits(['update:modelValue']);
 
 const dialogStyle = computed(() => {
   const widthValue = typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : String(props.maxWidth || '720px');
+  const viewportWidthValue = String(props.viewportWidth || '92vw');
 
   return {
     '--app-dialog-max-width': widthValue,
+    '--app-dialog-viewport-width': viewportWidthValue,
   };
 });
 </script>
@@ -73,11 +84,17 @@ const dialogStyle = computed(() => {
   background: rgba(2, 6, 23, 0.96) !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f8fafc;
-  width: min(92vw, var(--app-dialog-max-width, 720px));
-  max-width: 92vw;
+  width: 100%;
+  max-width: 100%;
   max-height: 88vh;
   display: flex;
   flex-direction: column;
+}
+
+:deep(.v-overlay__content) {
+  width: min(var(--app-dialog-viewport-width, 92vw), var(--app-dialog-max-width, 720px));
+  max-width: calc(100vw - 16px) !important;
+  margin-inline: auto;
 }
 
 .app-dialog__title {
@@ -104,8 +121,12 @@ const dialogStyle = computed(() => {
 }
 
 @media (max-width: 640px) {
+  :deep(.v-overlay__content) {
+    width: min(var(--app-dialog-viewport-width, 94vw), var(--app-dialog-max-width, 720px));
+    max-width: calc(100vw - 12px) !important;
+  }
+
   .app-dialog {
-    width: 94vw;
     max-height: 90vh;
   }
 
