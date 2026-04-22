@@ -90,8 +90,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['next-month', 'prev-month', 'select-date']);
-const { smAndDown } = useDisplay();
-const isMobile = smAndDown;
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 
 const currentViewKey = computed(() => `${props.currentYear}-${String(props.currentMonth + 1).padStart(2, '0')}`);
 const currentViewDate = computed(() => `${currentViewKey.value}-01`);

@@ -9,6 +9,9 @@ import * as directives from 'vuetify/directives'
 const vuetify = createVuetify({
 	components,
 	directives,
+	display: {
+		mobileBreakpoint: 'md',
+	},
 	icons: {
 		defaultSet: 'mdi',
 		aliases,

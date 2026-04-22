@@ -118,8 +118,8 @@ import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 import AppEmptyState from '@/components/ui/AppEmptyState.vue';
 
-const { smAndDown } = useDisplay();
-const isMobile = smAndDown;
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 const expandedServiceId = ref(null);
 
 defineProps({

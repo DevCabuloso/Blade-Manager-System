@@ -73,8 +73,8 @@ import AppConfirmDialog from '@/components/ui/AppConfirmDialog.vue';
 import { useHorarios } from '@/composables/useHorarios.js';
 
 const router = useRouter();
-const { smAndDown } = useDisplay();
-const isMobile = smAndDown;
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 const { horariosSorted, loading, errorMessage, fetchHorarios, saveHorario, deleteHorario } = useHorarios({ router });
 
 const showModal = ref(false);

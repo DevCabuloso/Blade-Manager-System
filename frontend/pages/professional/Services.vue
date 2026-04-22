@@ -68,8 +68,8 @@ import { useServices } from '@/composables/useServices.js';
 import { notifyError } from '@/utils/feedback.js';
 
 const router = useRouter();
-const { smAndDown } = useDisplay();
-const isMobile = smAndDown;
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 const { services, isLoading, fetchServices, createService, updateService, deleteService } = useServices({ router });
 
 const showCreateModal = ref(false);

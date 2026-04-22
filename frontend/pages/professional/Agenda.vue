@@ -200,8 +200,8 @@ import AppPanel from '@/components/ui/AppPanel.vue';
 import { notifyError, notifySuccess } from '@/utils/feedback.js';
 
 const router = useRouter();
-const { smAndDown } = useDisplay();
-const isMobile = smAndDown;
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 const selectedMonth = ref(new Date().toISOString().slice(0, 7));
 const selectedMonthNumber = ref('');
 const selectedYearNumber = ref('');

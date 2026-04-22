@@ -325,22 +325,40 @@
         </v-alert>
 
         <div class="d-flex flex-column ga-4">
-          <AppField
+          <v-alert
+            type="info"
+            variant="tonal"
+            density="comfortable"
+          >
+            Por segurança, a senha atual do usuário não pode ser exibida. Use este formulário para redefinir a senha.
+          </v-alert>
+
+          <v-text-field
             v-model="passwordForm.novaSenha"
             label="Nova senha"
-            type="password"
+            :type="showNewPassword ? 'text' : 'password'"
             autocomplete="new-password"
+            variant="outlined"
+            color="primary"
+            base-color="grey-darken-1"
             :disabled="isUpdatingPassword"
             hint="Mínimo de 6 caracteres"
             persistent-hint
+            :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append-inner="showNewPassword = !showNewPassword"
           />
 
-          <AppField
+          <v-text-field
             v-model="passwordForm.confirmacao"
             label="Confirmar nova senha"
-            type="password"
+            :type="showConfirmPassword ? 'text' : 'password'"
             autocomplete="new-password"
+            variant="outlined"
+            color="primary"
+            base-color="grey-darken-1"
             :disabled="isUpdatingPassword"
+            :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
           />
         </div>
 
@@ -394,6 +412,8 @@ export default {
         novaSenha: '',
         confirmacao: '',
       },
+      showNewPassword: false,
+      showConfirmPassword: false,
       confirmButtonText: 'Confirmar',
       confirmButtonVariant: 'danger',
       navItems: [
@@ -526,6 +546,8 @@ export default {
         novaSenha: '',
         confirmacao: '',
       };
+      this.showNewPassword = false;
+      this.showConfirmPassword = false;
       this.showPasswordModal = true;
     },
 
@@ -541,6 +563,8 @@ export default {
         novaSenha: '',
         confirmacao: '',
       };
+      this.showNewPassword = false;
+      this.showConfirmPassword = false;
     },
 
     async atualizarSenhaUsuario() {
