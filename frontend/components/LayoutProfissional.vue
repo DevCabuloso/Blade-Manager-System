@@ -53,10 +53,6 @@
 
         <v-spacer />
 
-        <AppButton v-if="!isMobile" variant="danger" rounded="xl" class="layout-logout-action" @click="logout">
-          Sair
-        </AppButton>
-
         <div class="layout-user-block">
           <span class="layout-user-label">Bem-vindo(a)</span>
           <strong class="layout-user-name">{{ userName }}</strong>
@@ -270,10 +266,6 @@ function handleNavigate() {
 
 .layout-menu-action {
   min-width: 116px;
-}
-
-.layout-logout-action {
-  min-width: 96px;
 }
 
 .layout-user-block {
