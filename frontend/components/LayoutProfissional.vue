@@ -2,7 +2,7 @@
   <div class="layout-shell">
     <v-navigation-drawer
       v-model="drawerOpen"
-      temporary
+      :temporary="isMobile"
       :width="272"
       location="left"
       color="rgba(2, 6, 23, 0.98)"
@@ -47,7 +47,7 @@
 
     <div class="layout-main">
       <v-app-bar flat color="rgba(2, 6, 23, 0.82)" class="layout-header">
-        <AppButton variant="secondary" rounded="xl" class="layout-menu-action" @click="toggleSidebar">
+        <AppButton v-if="isMobile" variant="secondary" rounded="xl" class="layout-menu-action" @click="toggleSidebar">
           {{ drawerOpen ? 'Fechar Menu' : 'Abrir Menu' }}
         </AppButton>
 
@@ -86,15 +86,21 @@ const navItems = [
 ];
 
 const drawerOpen = computed({
-  get: () => showSidebar.value,
+  get: () => (isMobile.value ? showSidebar.value : true),
   set: (value) => {
-    showSidebar.value = value;
+    if (isMobile.value) {
+      showSidebar.value = value;
+    }
   },
 });
 
 const checkMobile = () => {
   const mobile = window.innerWidth < 960;
   isMobile.value = mobile;
+
+  if (!mobile) {
+    showSidebar.value = false;
+  }
 };
 
 onMounted(() => {
@@ -112,7 +118,9 @@ onBeforeUnmount(() => {
 });
 
 function toggleSidebar() {
-  showSidebar.value = !showSidebar.value;
+  if (isMobile.value) {
+    showSidebar.value = !showSidebar.value;
+  }
 }
 
 function logout() {
@@ -121,7 +129,9 @@ function logout() {
 }
 
 function handleNavigate() {
-  showSidebar.value = false;
+  if (isMobile.value) {
+    showSidebar.value = false;
+  }
 }
 </script>
 

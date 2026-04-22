@@ -7,7 +7,7 @@
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <v-card class="app-dialog" rounded="xl">
+    <v-card class="app-dialog" :style="dialogStyle" rounded="xl">
       <v-card-title v-if="title || $slots.title" class="app-dialog__title">
         <slot name="title">{{ title }}</slot>
       </v-card-title>
@@ -28,7 +28,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
@@ -56,6 +58,14 @@ defineProps({
 });
 
 defineEmits(['update:modelValue']);
+
+const dialogStyle = computed(() => {
+  const widthValue = typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : String(props.maxWidth || '720px');
+
+  return {
+    '--app-dialog-max-width': widthValue,
+  };
+});
 </script>
 
 <style scoped>
@@ -63,7 +73,7 @@ defineEmits(['update:modelValue']);
   background: rgba(2, 6, 23, 0.96) !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f8fafc;
-  width: min(92vw, 720px);
+  width: min(92vw, var(--app-dialog-max-width, 720px));
   max-width: 92vw;
   max-height: 88vh;
   display: flex;

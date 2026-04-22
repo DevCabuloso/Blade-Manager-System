@@ -1,6 +1,7 @@
 <template>
   <AppDialog
     :model-value="modelValue"
+    :max-width="1180"
     @update:model-value="handleDialogChange"
   >
     <v-row dense>
