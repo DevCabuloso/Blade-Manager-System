@@ -71,31 +71,46 @@
             message="Ajuste o período para visualizar novos resultados."
           />
 
-          <v-table v-else theme="dark" class="dashboard-table">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Serviço</th>
-                <th>Horário</th>
-                <th>Valor</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+          <div v-else class="dashboard-cards-grid">
+            <v-card
+              v-for="appointment in sortedAppointments"
+              :key="appointment.id"
+              rounded="xl"
+              border
+              color="rgba(15, 23, 42, 0.62)"
+              class="dashboard-appointment-card"
+            >
+              <v-card-text class="dashboard-appointment-card__body">
+                <div class="dashboard-appointment-card__header">
+                  <div>
+                    <p class="dashboard-appointment-card__label">Cliente</p>
+                    <p class="dashboard-appointment-card__value">{{ appointment.customerName || 'Cliente' }}</p>
+                  </div>
 
-            <tbody>
-              <tr v-for="appointment in sortedAppointments" :key="appointment.id">
-                <td>{{ appointment.customerName || 'Cliente' }}</td>
-                <td>{{ appointment.service || 'Não especificado' }}</td>
-                <td>{{ formatDateTime(appointment.time) }}</td>
-                <td>R$ {{ Number(appointment.value || 0).toFixed(2) }}</td>
-                <td>
                   <span class="dashboard-status" :class="statusClass(getStatus(appointment))">
                     {{ getStatus(appointment) }}
                   </span>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
+                </div>
+
+                <div class="dashboard-appointment-card__meta">
+                  <div class="dashboard-appointment-card__row">
+                    <p class="dashboard-appointment-card__label">Serviço</p>
+                    <p class="dashboard-appointment-card__value dashboard-appointment-card__value--inline">{{ appointment.service || 'Não especificado' }}</p>
+                  </div>
+
+                  <div class="dashboard-appointment-card__row">
+                    <p class="dashboard-appointment-card__label">Horário</p>
+                    <p class="dashboard-appointment-card__value dashboard-appointment-card__value--inline">{{ formatDateTime(appointment.time) }}</p>
+                  </div>
+
+                  <div class="dashboard-appointment-card__row">
+                    <p class="dashboard-appointment-card__label">Valor</p>
+                    <p class="dashboard-appointment-card__value dashboard-appointment-card__value--inline">R$ {{ Number(appointment.value || 0).toFixed(2) }}</p>
+                  </div>
+                </div>
+              </v-card-text>
+            </v-card>
+          </div>
         </AppPanel>
       </div>
     </div>
@@ -311,45 +326,113 @@ onMounted(fetchFilteredAppointments);
   font-weight: 900;
 }
 
-.dashboard-table :deep(table) {
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 1rem;
+.dashboard-cards-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.dashboard-table :deep(th) {
-  color: #cbd5e1;
+.dashboard-appointment-card {
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.dashboard-appointment-card__body {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.7rem !important;
+}
+
+.dashboard-appointment-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dashboard-appointment-card__meta {
+  display: grid;
+  gap: 0.38rem;
+  grid-template-columns: 1fr;
+}
+
+.dashboard-appointment-card__row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.dashboard-appointment-card__label {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboard-appointment-card__value {
+  margin: 0.2rem 0 0;
+  color: #e2e8f0;
   font-size: 0.8rem;
   font-weight: 700;
+  word-break: break-word;
 }
 
-.dashboard-table :deep(td) {
-  color: #e2e8f0;
+.dashboard-appointment-card__value--inline {
+  margin-top: 0;
 }
 
 .dashboard-status {
-  font-weight: 700;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
 
 .dashboard-status--success {
   color: #4ade80;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(74, 222, 128, 0.25);
 }
 
 .dashboard-status--warning {
   color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border-color: rgba(250, 204, 21, 0.24);
 }
 
 .dashboard-status--danger {
   color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.22);
 }
 
 .dashboard-status--muted {
   color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.18);
 }
 
 @media (min-width: 960px) {
   .dashboard-filter-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-self: end;
+  }
+}
+
+@media (max-width: 599px) {
+  .dashboard-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .dashboard-appointment-card__row {
+    grid-template-columns: 66px minmax(0, 1fr);
   }
 }
 </style>
