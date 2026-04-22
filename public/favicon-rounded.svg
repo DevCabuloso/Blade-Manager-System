@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="roundedClip">
+      <rect x="1" y="1" width="62" height="62" rx="14" ry="14" />
+    </clipPath>
+  </defs>
+  <image href="/Logo.png" x="0" y="0" width="64" height="64" clip-path="url(#roundedClip)" preserveAspectRatio="xMidYMid slice" />
+</svg>
