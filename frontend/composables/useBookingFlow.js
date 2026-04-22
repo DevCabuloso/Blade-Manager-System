@@ -13,6 +13,7 @@ import {
 } from '@/utils/dateUtils.js';
 import {
   createAppointment,
+  fetchBookingBootstrap,
   fetchOccupiedAppointments,
   fetchProfessionalById,
   fetchServicesByProfessional,
@@ -24,6 +25,8 @@ export const useBookingFlow = ({ profissionalId, router }) => {
   const services = ref([]);
   const isLoading = ref(true);
   const isSubmitting = ref(false);
+  const occupiedAppointmentsCache = new Map();
+  const occupiedAppointmentsRequests = new Map();
 
   const showModal = ref(false);
   const selectedService = ref(null);
@@ -32,6 +35,7 @@ export const useBookingFlow = ({ profissionalId, router }) => {
   const customerName = ref('');
   const availableTimes = ref([]);
   const workingHours = ref([]);
+  const professionalPhone = ref('');
 
   const today = new Date();
   const currentMonth = ref(today.getMonth());
@@ -66,15 +70,11 @@ export const useBookingFlow = ({ profissionalId, router }) => {
   };
 
   const fetchServices = async () => {
-    isLoading.value = true;
-
     try {
       services.value = await fetchServicesByProfessional(profissionalId);
     } catch (error) {
       console.error('Erro ao buscar servicos:', error.response?.data || error.message);
       services.value = [];
-    } finally {
-      isLoading.value = false;
     }
   };
 
@@ -87,8 +87,30 @@ export const useBookingFlow = ({ profissionalId, router }) => {
     }
   };
 
+  const fetchProfessionalContact = async () => {
+    try {
+      const userData = await fetchProfessionalById(profissionalId);
+      professionalPhone.value = String(userData?.telefone || '').trim();
+    } catch (error) {
+      console.error('Erro ao buscar telefone do profissional:', error.response?.data || error.message);
+      professionalPhone.value = '';
+    }
+  };
+
   const fetchInitialData = async () => {
-    await Promise.all([fetchServices(), fetchWorkingHours()]);
+    isLoading.value = true;
+
+    try {
+      const bootstrap = await fetchBookingBootstrap(profissionalId);
+      services.value = bootstrap.services;
+      workingHours.value = bootstrap.workingHours;
+      professionalPhone.value = String(bootstrap?.professional?.telefone || '').trim();
+    } catch (error) {
+      console.error('Erro ao carregar dados iniciais do agendamento:', error.response?.data || error.message);
+      await Promise.all([fetchServices(), fetchWorkingHours(), fetchProfessionalContact()]);
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const openCalendar = (service) => {
@@ -131,9 +153,32 @@ export const useBookingFlow = ({ profissionalId, router }) => {
     });
 
     const formattedDate = buildAppointmentDateTime(day, currentMonth.value, currentYear.value, '00:00').slice(0, 10);
+    const occupiedCacheKey = `${profissionalId}:${formattedDate}`;
 
     try {
-      const occupiedAppointments = await fetchOccupiedAppointments(profissionalId, formattedDate);
+      let occupiedAppointments = occupiedAppointmentsCache.get(occupiedCacheKey);
+
+      if (!occupiedAppointments) {
+        const inFlightRequest = occupiedAppointmentsRequests.get(occupiedCacheKey);
+
+        if (inFlightRequest) {
+          occupiedAppointments = await inFlightRequest;
+        } else {
+          const request = fetchOccupiedAppointments(profissionalId, formattedDate)
+            .then((data) => {
+              const normalizedData = Array.isArray(data) ? data : [];
+              occupiedAppointmentsCache.set(occupiedCacheKey, normalizedData);
+              return normalizedData;
+            })
+            .finally(() => {
+              occupiedAppointmentsRequests.delete(occupiedCacheKey);
+            });
+
+          occupiedAppointmentsRequests.set(occupiedCacheKey, request);
+          occupiedAppointments = await request;
+        }
+      }
+
       const occupiedIntervals = occupiedAppointments.map((item) => {
         const start = toMinutes(String(item?.horario || '').slice(0, 5));
         const duration = Number(item?.duracao_minutos) || 15;
@@ -191,8 +236,13 @@ export const useBookingFlow = ({ profissionalId, router }) => {
       isSubmitting.value = true;
       const token = getAuthToken();
 
-      const userData = await fetchProfessionalById(profissionalId, token);
-      const numero = userData.telefone?.replace(/\D/g, '');
+      let numero = String(professionalPhone.value || '').replace(/\D/g, '');
+
+      if (!numero) {
+        const userData = await fetchProfessionalById(profissionalId, token);
+        professionalPhone.value = String(userData?.telefone || '').trim();
+        numero = professionalPhone.value.replace(/\D/g, '');
+      }
 
       if (!numero) {
         alert('Numero do profissional nao disponivel.');
@@ -215,6 +265,16 @@ export const useBookingFlow = ({ profissionalId, router }) => {
         },
         token,
       );
+
+      if (selectedDate.value) {
+        const bookedDate = buildAppointmentDateTime(
+          selectedDate.value,
+          currentMonth.value,
+          currentYear.value,
+          '00:00',
+        ).slice(0, 10);
+        occupiedAppointmentsCache.delete(`${profissionalId}:${bookedDate}`);
+      }
 
       const mensagem = `Novo agendamento!\n\nCliente: ${String(customerName.value || '').trim()}\nServico: ${selectedService.value.nome}\nData: ${selectedDate.value}/${currentMonth.value + 1}/${currentYear.value}\nHorario: ${selectedTime.value}\n\nPor favor, confirme o agendamento.`;
       window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank');

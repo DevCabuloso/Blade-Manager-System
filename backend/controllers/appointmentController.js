@@ -427,6 +427,62 @@ export const deleteAppointment = async (req, res) => {
   }
 };
 
+export const getBookingBootstrap = async (req, res) => {
+  const { barbeiroId } = req.params;
+
+  try {
+    const normalizedBarbeiroId = parseStrictInteger(barbeiroId);
+
+    if (!normalizedBarbeiroId) {
+      return res.status(400).json({ message: 'ID do profissional invalido.' });
+    }
+
+    const { professional, horarios, error: professionalError } = await getProfessionalAvailability(normalizedBarbeiroId);
+
+    if (professionalError) {
+      console.error('Supabase error getBookingBootstrap professional:', professionalError);
+      return res.status(500).json({ message: 'Erro interno.' });
+    }
+
+    if (!professional || professional.ativo === 0) {
+      return res.json({
+        professional: null,
+        services: [],
+        workingHours: [],
+      });
+    }
+
+    const { data: servicesRows, error: servicesError } = await supabase
+      .from('servicos')
+      .select('*')
+      .eq('barbeiro_id', normalizedBarbeiroId)
+      .not('nome', 'is', null)
+      .not('preco', 'is', null)
+      .not('duracao_minutos', 'is', null)
+      .order('nome', { ascending: true });
+
+    if (servicesError) {
+      console.error('Supabase error getBookingBootstrap services:', servicesError);
+      return res.status(500).json({ message: 'Erro interno.' });
+    }
+
+    res.set('Cache-Control', 'public, max-age=30');
+
+    return res.json({
+      professional: {
+        id: professional.id,
+        nome_usuario: professional.nome_usuario || null,
+        telefone: professional.telefone || null,
+      },
+      services: servicesRows || [],
+      workingHours: horarios || [],
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Erro interno.' });
+  }
+};
+
 export const getAppointmentsByDate = async (req, res) => {
   const { barbeiroId, data } = req.params;
 
