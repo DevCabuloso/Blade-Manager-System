@@ -5,7 +5,7 @@
     @update:model-value="handleDialogChange"
   >
     <v-row dense>
-      <v-col cols="12" lg="4">
+      <v-col v-if="!isMobile" cols="12" lg="4">
         <v-sheet rounded="xl" border color="rgba(15, 23, 42, 0.68)" class="booking-dialog__sidebar">
           <div class="booking-dialog__sidebar-header">
             <div>
@@ -42,7 +42,7 @@
         </v-sheet>
       </v-col>
 
-      <v-col cols="12" lg="8">
+      <v-col cols="12" :lg="isMobile ? 12 : 8">
         <v-sheet rounded="xl" border color="rgba(3, 7, 18, 0.72)" class="booking-dialog__content">
           <div class="booking-dialog__content-header">
             <h2 class="booking-dialog__content-title">Escolha data e horário</h2>
@@ -97,12 +97,16 @@
 </template>
 
 <script setup>
+import { useDisplay } from 'vuetify';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppDialog from '@/components/ui/AppDialog.vue';
 import AppField from '@/components/ui/AppField.vue';
 import BookingCalendar from '@/components/users/BookingCalendar.vue';
 import TimeSlots from '@/components/users/TimeSlots.vue';
 import { formatCurrency } from '@/utils/dateUtils.js';
+
+const { mdAndDown } = useDisplay();
+const isMobile = mdAndDown;
 
 const props = defineProps({
   availableTimes: {
@@ -272,6 +276,12 @@ const handleDialogChange = (value) => {
 
 .booking-dialog__name-field {
   margin-top: 1.25rem;
+}
+
+@media (max-width: 959px) {
+  .booking-dialog__content {
+    padding: 0.95rem;
+  }
 }
 
 @media (min-width: 700px) {
