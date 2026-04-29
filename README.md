@@ -10,7 +10,7 @@ Front-end: Vite, JavaScript, Vue 3, Vuetify
 
 Back-end: Node.js
 
-Banco de Dados: (adicione aqui se estiver usando MySQL, PostgreSQL, Supabase etc.)
+Banco de Dados: Supabase
 
 Ferramentas: Nodemon, Concurrently
 
